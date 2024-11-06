@@ -1,6 +1,6 @@
 // utils/createAdmin.js
 import sequelize from '../models/index.js';
-import { initUserModel, User } from '../models/User.js';
+import initUserModel, { User } from '../models/User.js';
 import bcrypt from 'bcrypt';
 
 // Initialize User model
@@ -13,15 +13,16 @@ const insertAdminUser = async () => {
         // Ensure table sync (use force: true if tables are empty)
         await sequelize.sync();
 
-        const hashedPassword = await bcrypt.hash('12345678', 10);
+
 
         const adminUser = await User.create({
             name: 'admin',
             email: 'admin@gmail.com',
-            password: hashedPassword,
+            password: '12345678',
             username: 'admin',
             isAdmin: true,
             isActive: true,
+            isSuperAdmin: true,
         });
 
         console.log('Admin user created:', adminUser.toJSON());

@@ -77,6 +77,7 @@ export const signup = async (req, res) => {
                 username: newUser.username,
                 isAdmin: newUser.isAdmin,
                 isActive: newUser.isActive,
+                isSuperAdmin: newUser.isSuperAdmin,
             },
         });
     } catch (error) {
@@ -102,7 +103,7 @@ export const verifyEmail = async (req, res) => {
         await user.save();
 
         // Redirect to the frontend login page
-        res.redirect(`${process.env.FRONTEND_BASE_URL}/login`); // Adjust the URL as needed
+        res.redirect(`${process.env.FRONTEND_BASE_URL}login`); // Adjust the URL as needed
     } catch (error) {
         console.error('Error verifying email:', error);
         res.status(500).json({ message: `Internal server error: ${error.message}` });
@@ -144,6 +145,7 @@ export const signin = async (req, res) => {
                 username: user.username,
                 isAdmin: user.isAdmin,
                 isActive: user.isActive,
+                isSuperAdmin: user.isSuperAdmin,
             },
             token, // Send the token back if needed
         });

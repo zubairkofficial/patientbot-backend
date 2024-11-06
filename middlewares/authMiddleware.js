@@ -1,20 +1,23 @@
-// middleware/authMiddleware.js
-import { verifyToken } from '../utils/jwt.js';
+import jwt from 'jsonwebtoken';
 
-export const authMiddleware = (req, res, next) => {
-    // Remove the space after '?' to use optional chaining correctly
-    const token = req.headers['authorization'].split(' ')[1];
+const authMiddleware = (req, res, next) => {
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
-        return res.status(401).json({ message: 'No token provided' });
+    // Check if token is provided
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Authorization token required' });
     }
 
-    const decoded = verifyToken(token);
+    const token = authHeader.split(' ')[1]; // Extract token from "Bearer <token>"
 
-    if (!decoded) {
-        return res.status(401).json({ message: 'Invalid token' });
+    try {
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your JWT secret key
+        req.user = decoded; // Store user data in req.user for further use in controllers
+        next(); // Proceed to the next middleware or route handler
+    } catch (error) {
+        res.status(403).json({ message: 'Invalid or expired token' });
     }
-
-    req.userId = decoded.userId;
-    next();
 };
+
+export default authMiddleware;

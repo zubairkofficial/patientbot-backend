@@ -52,6 +52,10 @@ export default function initUserModel(sequelize) {
             type: DataTypes.BOOLEAN,
             defaultValue: false,
         },
+        isSuperAdmin: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false,
+        },
         verificationToken: {
             type: DataTypes.STRING,
             allowNull: true, // Can be null if not yet verified

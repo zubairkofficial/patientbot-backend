@@ -1,8 +1,17 @@
+// userRoutes.js
 import express from 'express';
-import { getUser } from '../controllers/userController.js'; // Ensure to include the .js extension
+import userController from '../controllers/userController.js';
+import authMiddleware from '../middlewares/authMiddleware.js';
 
+// Apply authMiddleware to all routes in this router
 const router = express.Router();
+router.use(authMiddleware);
 
-router.get('/:id', getUser);
 
-export default router; // Use export default instead of module.exports
+router.post('/', userController.createUser); // Add new user
+router.get('/', userController.getAllUsers); // Get all users
+router.get('/:id', userController.getUserById); // Get user by ID
+router.put('/:id', userController.updateUser); // Update user
+router.delete('/:id', userController.deleteUser); // Delete user
+
+export default router;
