@@ -17,6 +17,7 @@ const startServer = async () => {
     });
 };
 await sequelize.authenticate();
+await sync();
 console.log("Database connected successfully.");
 startServer().catch((error) => {
     console.error('Error starting the server:', error);

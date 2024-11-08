@@ -2,21 +2,24 @@
 import { DataTypes, Model } from 'sequelize';
 import bcrypt from 'bcrypt';
 
-export class User extends Model {
-    // Add a hook to hash the password before saving
-    static async hashPassword(user) {
-        if (user.changed('password')) {
-            user.password = await bcrypt.hash(user.password, 10);
+
+
+export default function initUserModel(sequelize) {
+    class User extends Model {
+        // Add a hook to hash the password before saving
+        static async hashPassword(user) {
+            if (user.changed('password')) {
+                user.password = await bcrypt.hash(user.password, 10);
+            }
+        }
+
+        // Method to check password validity
+        async isValidPassword(password) {
+            return bcrypt.compare(password, this.password);
         }
     }
 
-    // Method to check password validity
-    async isValidPassword(password) {
-        return bcrypt.compare(password, this.password);
-    }
-}
 
-export default function initUserModel(sequelize) {
     User.init({
         id: {
             type: DataTypes.UUID,
@@ -70,4 +73,5 @@ export default function initUserModel(sequelize) {
         },
         paranoid: true, // Enable soft deletes (adds deletedAt timestamp)
     });
+    return User;
 }

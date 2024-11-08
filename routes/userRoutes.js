@@ -9,9 +9,17 @@ router.use(authMiddleware);
 
 
 router.post('/', userController.createUser); // Add new user
-router.get('/', userController.getAllUsers); // Get all users
+router.get('/', userController.getAllUsers);
+router.get('/students', userController.getAllStudents);  // Get all users
 router.get('/:id', userController.getUserById); // Get user by ID
 router.put('/:id', userController.updateUser); // Update user
 router.delete('/:id', userController.deleteUser); // Delete user
+
+
+router.post('/assign-patients',userController.assignPatient);
+router.get('/assigned', (req, res) => {
+    console.log("Hello World");
+    res.send("Hello World"); // Respond to the request
+});
 
 export default router;
