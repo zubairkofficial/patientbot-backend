@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes.js';
 import patientRoutes from './routes/patientRoutes.js'
 import symptomRoutes from './routes/symptomRoutes.js'
 import assignmentRoutes from './routes/assignmentRoutes.js'
+import homeRoutes from './routes/homeRoutes.js'
 const app = express();
 
 app.use(cors()); // Enable CORS for cross-origin requests
@@ -16,5 +17,6 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/patients', patientRoutes);
 app.use('/api/v1/symptoms', symptomRoutes);
 app.use('/api/v1/assignments', assignmentRoutes);
+app.use('/api/v1/home', homeRoutes);
 
 export default app; // Use export default instead of module.exports

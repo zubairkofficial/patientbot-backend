@@ -1,10 +1,8 @@
 // utils/createAdmin.js
 import sequelize from '../models/index.js';
-import initUserModel, { User } from '../models/User.js';
+import initUserModel, { User } from '../models/index.js';
 import bcrypt from 'bcrypt';
 
-// Initialize User model
-initUserModel(sequelize);
 
 const insertAdminUser = async () => {
     try {

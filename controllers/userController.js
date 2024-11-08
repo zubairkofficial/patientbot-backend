@@ -33,7 +33,20 @@ const userController = {
 
             res.status(201).json({ message: 'User created successfully', user: newUser });
         } catch (error) {
-            res.status(500).json({ message: 'Error creating user', error: error.message });
+            if (error.name === 'SequelizeValidationError') {
+                // Handle Sequelize validation errors
+                const validationErrors = error.errors.map((err) => err.message);
+                console.error("Validation error updating user:", validationErrors);
+                return res.status(400).json({ message: 'Validation error', errors: validationErrors });
+            } else if (error.name === 'SequelizeUniqueConstraintError') {
+                // Handle unique constraint violations (e.g., email/username already in use)
+                console.error("Unique constraint error updating user:", error.errors[0].message);
+                return res.status(400).json({ message: 'Email/username already in use', error: error.errors[0].message });
+            } else {
+                // Generic error handling for unexpected issues
+                console.error("Unexpected error updating user:", error);
+                return res.status(500).json({ message: 'An unexpected error occurred while updating user', error: error.message });
+            }
         }
     },
 
@@ -72,12 +85,76 @@ const userController = {
     },
 
     // Update user by ID
+    // Update user by ID
     async updateUser(req, res) {
         const { id } = req.params;
-        const { name, email, password, username, isAdmin, isActive, isSuperAdmin } = req.body;
-
+        const { name, email, username, isAdmin, isActive, isSuperAdmin } = req.body;
+    
         console.log(`Received request to update user with ID: ${id}`);
-        console.log("Request body:", { name, email, password, username, isAdmin, isActive, isSuperAdmin });
+        console.log("Request body:", { name, email, username, isAdmin, isActive, isSuperAdmin });
+    
+        try {
+            // Validate request parameters
+            if (!id) {
+                return res.status(400).json({ message: 'User ID is required.' });
+            }
+    
+            // Validate email format if email is being updated
+            if (email && !/^\S+@\S+\.\S+$/.test(email)) {
+                return res.status(400).json({ message: 'Invalid email format.' });
+            }
+    
+            // Find the user by ID
+            const user = await User.findByPk(id);
+            if (!user) {
+                console.warn(`User with ID ${id} not found.`);
+                return res.status(404).json({ message: 'User not found' });
+            }
+    
+            console.log(`User found:`, user);
+    
+            // Update user fields without modifying the password
+            user.name = name || user.name;
+            user.email = email || user.email;
+            user.username = username || user.username;
+            user.isAdmin = isAdmin !== undefined ? isAdmin : user.isAdmin;
+            user.isActive = isActive !== undefined ? isActive : user.isActive;
+            user.isSuperAdmin = isSuperAdmin !== undefined ? isSuperAdmin : user.isSuperAdmin;
+    
+            console.log("No password field processed. Updating user information only.");
+    
+            // Save the updated user without updating the password
+            await user.save();
+    
+            console.log("User updated successfully:", user);
+            res.status(200).json({ message: 'User updated successfully', user });
+        } catch (error) {
+            // Specific error handling for different scenarios
+            if (error.name === 'SequelizeValidationError') {
+                // Handle Sequelize validation errors
+                const validationErrors = error.errors.map((err) => err.message);
+                console.error("Validation error updating user:", validationErrors);
+                return res.status(400).json({ message: 'Validation error', errors: validationErrors });
+            } else if (error.name === 'SequelizeUniqueConstraintError') {
+                // Handle unique constraint violations (e.g., email/username already in use)
+                console.error("Unique constraint error updating user:", error.errors[0].message);
+                return res.status(400).json({ message: 'Email/username already in use', error: error.errors[0].message });
+            } else {
+                // Generic error handling for unexpected issues
+                console.error("Unexpected error updating user:", error);
+                return res.status(500).json({ message: 'An unexpected error occurred while updating user', error: error.message });
+            }
+        }
+    },
+    
+
+
+    async updatePassword(req, res) {
+        const { id } = req.params;
+        const { oldPassword, newPassword } = req.body;
+
+        console.log(`Received request to update password for user with ID: ${id}`);
+        console.log("Request body:", { oldPassword, newPassword });
 
         try {
             // Find the user by ID
@@ -89,31 +166,29 @@ const userController = {
 
             console.log(`User found:`, user);
 
-            // Update user fields
-            user.name = name || user.name;
-            user.email = email || user.email;
-            user.username = username || user.username;
-            user.isAdmin = isAdmin !== undefined ? isAdmin : user.isAdmin;
-            user.isActive = isActive !== undefined ? isActive : user.isActive;
-            user.isSuperAdmin = isSuperAdmin !== undefined ? isSuperAdmin : user.isSuperAdmin;
-
-            if (password) {
-                console.log("Password provided, hashing new password...");
-                user.password = user.password;
-            } else {
-                console.log("No new password provided, keeping the existing password.");
+            // Verify the old password using bcrypt
+            const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+            if (!isPasswordValid) {
+                console.warn(`Old password is incorrect for user with ID ${id}.`);
+                return res.status(400).json({ message: 'Old password is incorrect' });
             }
 
-            // Save the updated user
+            console.log("Old password verified successfully.");
+
+            // Set the new password (the hook will hash it before saving)
+            user.password = newPassword;
+
+            // Save the updated user with the new password
             await user.save();
 
-            console.log("User updated successfully:", user);
-            res.status(200).json({ message: 'User updated successfully', user });
+            console.log("Password updated successfully for user:", user);
+            res.status(200).json({ message: 'Password updated successfully' });
         } catch (error) {
-            console.error("Error updating user:", error);
-            res.status(500).json({ message: 'Error updating user', error: error.message });
+            console.error("Error updating password:", error);
+            res.status(500).json({ message: 'Error updating password', error: error.message });
         }
     },
+
 
 
     // Delete user by ID
@@ -135,44 +210,44 @@ const userController = {
 
     async assignPatient(req, res) {
         const { studentId, patientIds } = req.body;
-    
+
         // Check if studentId and patientIds are provided
         if (!studentId || !Array.isArray(patientIds) || patientIds.length === 0) {
             return res.status(400).json({ message: 'Student ID and an array of patient IDs are required.' });
         }
-    
+
         try {
             // Ensure the student (user) and patients exist
             const student = await User.findByPk(studentId);
             if (!student) {
                 return res.status(404).json({ message: 'Student not found.' });
             }
-    
+
             const patients = await Patient.findAll({
                 where: { id: patientIds },
             });
-    
+
             if (patients.length !== patientIds.length) {
                 return res.status(404).json({ message: 'One or more patients not found.' });
             }
-    
+
             // Create entries in PatientUser for each patient-student relationship with status 'assigned'
             const assignments = patientIds.map(patientId => ({
                 userId: studentId,
                 patientId,
                 status: 'assigned', // Set status as 'assigned'
             }));
-    
+
             // Bulk create the relationships in PatientUser table
             await PatientUser.bulkCreate(assignments, { ignoreDuplicates: true });
-    
+
             res.status(200).json({ message: 'Patients assigned to student successfully.' });
         } catch (error) {
             console.error('Error assigning patients to student:', error);
             res.status(500).json({ message: 'An error occurred while assigning patients to the student.' });
         }
     },
-    
+
 
     async getAssignedPatients(req, res) {
         console.log("I am hit asisgned patitents")
@@ -188,7 +263,7 @@ const userController = {
                     },
                 ],
             });
-    
+
             // Map the data to structure it as needed
             const response = students.map((student) => ({
                 id: student.id,
@@ -199,7 +274,7 @@ const userController = {
                     status: patient.PatientUser.status, // Access status from the PatientUser join table
                 })),
             }));
-    
+
             res.status(200).json({ students: response });
         } catch (error) {
             console.error('Error fetching assigned patients:', error.message, error.stack);
@@ -207,7 +282,7 @@ const userController = {
             res.status(500).json({ message: 'An error occurred while fetching assigned patients.' });
         }
     },
-    
+
 
 
 
