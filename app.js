@@ -19,4 +19,8 @@ app.use('/api/v1/symptoms', symptomRoutes);
 app.use('/api/v1/assignments', assignmentRoutes);
 app.use('/api/v1/home', homeRoutes);
 
+app.get('/',(req,res)=> {
+    res.send({"Hello": "World"})
+})
+
 export default app; // Use export default instead of module.exports
