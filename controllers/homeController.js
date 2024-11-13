@@ -1,4 +1,5 @@
-import { User, Patient } from '../models/index.js';
+import { where } from 'sequelize';
+import { User, Patient, Assignment } from '../models/index.js';
 
 // Controller for handling home operations
 const homeController = {
@@ -14,8 +15,10 @@ const homeController = {
             const patientCount = await Patient.count();
 
             // Hardcoded stats
-            const assessmentsCount = 0; // For demonstration purposes, this is hardcoded
-            const interactionCount = 0; // Also hardcoded
+            const assessmentsCount =await Assignment.count({where:{
+                status: 'marked',
+            }}); // For demonstration purposes, this is hardcoded
+            const interactionCount = await Assignment.count(); // Also hardcoded
 
             // Prepare JSON response
             const stats = {

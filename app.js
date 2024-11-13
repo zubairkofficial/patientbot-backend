@@ -6,6 +6,7 @@ import patientRoutes from './routes/patientRoutes.js'
 import symptomRoutes from './routes/symptomRoutes.js'
 import assignmentRoutes from './routes/assignmentRoutes.js'
 import homeRoutes from './routes/homeRoutes.js'
+import openaiRoutes from './routes/openaiRoutes.js'
 const app = express();
 
 app.use(cors()); // Enable CORS for cross-origin requests
@@ -18,6 +19,7 @@ app.use('/api/v1/patients', patientRoutes);
 app.use('/api/v1/symptoms', symptomRoutes);
 app.use('/api/v1/assignments', assignmentRoutes);
 app.use('/api/v1/home', homeRoutes);
+app.use('/api/v1/openai', openaiRoutes);
 
 app.get('/',(req,res)=> {
     res.send({"Hello": "World"})

@@ -1,7 +1,7 @@
 import { User } from '../models/index.js';
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import { PatientUser } from '../models/index.js';
+import { Assignment } from '../models/index.js';
 import { Patient } from '../models/index.js';
 // Controller for handling user operations
 const userController = {
@@ -231,15 +231,15 @@ const userController = {
                 return res.status(404).json({ message: 'One or more patients not found.' });
             }
 
-            // Create entries in PatientUser for each patient-student relationship with status 'assigned'
+            // Create entries in Assignment for each patient-student relationship with status 'assigned'
             const assignments = patientIds.map(patientId => ({
                 userId: studentId,
                 patientId,
                 status: 'assigned', // Set status as 'assigned'
             }));
 
-            // Bulk create the relationships in PatientUser table
-            await PatientUser.bulkCreate(assignments, { ignoreDuplicates: true });
+            // Bulk create the relationships in Assignment table
+            await Assignment.bulkCreate(assignments, { ignoreDuplicates: true });
 
             res.status(200).json({ message: 'Patients assigned to student successfully.' });
         } catch (error) {
@@ -258,7 +258,7 @@ const userController = {
                     {
                         model: Patient,
                         through: {
-                            attributes: ['status'], // Include only the 'status' from PatientUser
+                            attributes: ['status'], // Include only the 'status' from Assignment
                         },
                     },
                 ],
