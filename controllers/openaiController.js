@@ -2,7 +2,7 @@
 
 import { calculateScore, extractInformation, extractInformationSummary } from "../services/openaiService.js";
 import { Assignment, Patient, Symptom } from "../models/index.js"; // Import Symptom model
-
+    
 // Utility function to clean conversation log data
 function cleanConversationLog(conversationLog) {
     const conversation = JSON.parse(conversationLog);
