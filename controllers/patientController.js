@@ -30,7 +30,7 @@ const patientController = {
         // Validate required fields
         if (!name || !mandatoryQuestions || !medicalHistory || !predefinedTreatments || !answer || !Array.isArray(symptoms)) {
             return res.status(400).json({
-                message: 'Name, answer, symptoms, mandatoryQuestions, medicalHistory, and predefinedTreatments are required.',
+                message: 'All the fields are required to create patient.',
             });
         }
     
