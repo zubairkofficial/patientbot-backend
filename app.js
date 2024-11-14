@@ -21,7 +21,7 @@ app.use('/api/v1/assignments', assignmentRoutes);
 app.use('/api/v1/home', homeRoutes);
 app.use('/api/v1/openai', openaiRoutes);
 
-app.get('/',(req,res)=> {
+app.get('/api/v1/',(req,res)=> {
     res.send({"Hello": "World"})
 })
 
