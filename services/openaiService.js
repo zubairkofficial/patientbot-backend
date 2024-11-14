@@ -14,19 +14,23 @@ export async function extractInformation(studentData, predefinedData) {
     const promptTemplate = ChatPromptTemplate.fromMessages([
         {
             role: "system",
-            content: "You are an assistant that extracts medical information from conversational and paragraph data."
+            content: `You are an assistant tasked with extracting medical information from both predefined data and a conversation log between a student and AI. You need to categorize extracted information into two main parts: "Predefined Data" and "Student-Provided Data". Pay special attention to the student’s messages, particularly any questions they ask, symptoms discussed, and whether those symptoms are identified as positive or negative. This information will be used for evaluating the student's performance.`
         },
         {
             role: "user",
             content: `
-                Extract the following information from the provided data in JSON format only.
+                Extract the requested information from the provided data below. Ensure your response is in JSON format only, without additional text or explanations.
+    
+                Data Categories:
+                1. **Predefined Data** - Includes mandatory questions, appropriate treatments, diagnosis, and symptoms provided beforehand.
+                2. **Student-Provided Data** - Includes mandatory questions asked by the student, treatments suggested, diagnosis made, and symptoms discussed by the student during the conversation. Note if the student has asked about symptoms, and specify whether those symptoms were positive or negative.
+    
+                Data Input:
+                - Student Conversation Data: ${studentData}
+                - Predefined Patient Data: ${predefinedData}
                 
-                Student Data: ${studentData}
-                
-                Predefined Data: ${predefinedData}
-                
-                JSON output format:
-                {{
+                Expected JSON Output Format:
+                {{ 
                     "predefined_mandatory_questions": [],
                     "student_mandatory_questions": [],
                     "predefined_appropriate_treatments": [],
@@ -34,13 +38,15 @@ export async function extractInformation(studentData, predefinedData) {
                     "predefined_diagnosis": [],
                     "student_diagnosis": [],
                     "predefined_symptoms": [],
-                    "student_symptoms": []
+                    "student_symptoms":  [],
+                    "student_questions_on_symptoms": []
                 }}
-                
-                Only respond with the JSON object, and ensure no extra text is included.
+    
+                Make sure the response strictly follows the JSON format above. Do not include any additional text or commentary. Focus on ensuring that all relevant information is accurately categorized and extracted.
             `
         }
     ]);
+
 
     const parser = new StringOutputParser();
     const llmChain = promptTemplate.pipe(model).pipe(parser);
@@ -101,7 +107,7 @@ export async function extractInformationSummary(studentData, predefinedData) {
 
 // Function to calculate the score and provide feedback based on the summary
 export async function calculateScore(string) {
-const summary = JSON.stringify(string);
+    const summary = JSON.stringify(string);
 
     const promptTemplate = ChatPromptTemplate.fromMessages([
         {
@@ -119,13 +125,13 @@ const summary = JSON.stringify(string);
                 3. Correct diagnosis: [10% of total score].
                 4. Appropriate treatments: [5% of total score].
 
-               Detailed Summary:  ${{ summary }}
+                Detailed Summary:  ${summary}
 
                 Response Format:
-            Total Score:
-            Each Section Score:
-            Overall feedback:
-            Each Section Feedback: 
+                Total Score:
+                Each Section Score:
+                Overall feedback:
+                Each Section Feedback: 
 
                 Please evaluate the student's performance based on the provided scoring criteria and give feedback for each section accordingly.
             `

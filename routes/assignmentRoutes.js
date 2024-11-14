@@ -12,6 +12,8 @@ router.get('/', assignmentController.getAssignedPatients); // Get all patients
 router.get('/:studentId', assignmentController.getAssignmentsByStudentId);
 router.post('/store', assignmentController.storeConversationLog);
 router.post('/submit', assignmentController.submitAssignment);
+router.post('/assign-patient', assignmentController.assignPatient);
+router.post('/assign-student', assignmentController.assignStudent);
 
 
 

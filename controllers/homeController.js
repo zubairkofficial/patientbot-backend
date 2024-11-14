@@ -15,10 +15,17 @@ const homeController = {
             const patientCount = await Patient.count();
 
             // Hardcoded stats
-            const assessmentsCount =await Assignment.count({where:{
-                status: 'marked',
-            }}); // For demonstration purposes, this is hardcoded
-            const interactionCount = await Assignment.count(); // Also hardcoded
+            const assessmentsCount = await Assignment.count({
+                where: {
+                    status: 'marked',
+                }
+            }); // For demonstration purposes, this is hardcoded
+            const interactionCount = await Assignment.count({
+                where: {
+                    status: ['inprogress', 'completed', 'marked'], // Array of possible values for the status column
+                }
+            });
+            
 
             // Prepare JSON response
             const stats = {

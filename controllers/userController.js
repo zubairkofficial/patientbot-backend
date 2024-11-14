@@ -89,30 +89,30 @@ const userController = {
     async updateUser(req, res) {
         const { id } = req.params;
         const { name, email, username, isAdmin, isActive, isSuperAdmin } = req.body;
-    
+
         console.log(`Received request to update user with ID: ${id}`);
         console.log("Request body:", { name, email, username, isAdmin, isActive, isSuperAdmin });
-    
+
         try {
             // Validate request parameters
             if (!id) {
                 return res.status(400).json({ message: 'User ID is required.' });
             }
-    
+
             // Validate email format if email is being updated
             if (email && !/^\S+@\S+\.\S+$/.test(email)) {
                 return res.status(400).json({ message: 'Invalid email format.' });
             }
-    
+
             // Find the user by ID
             const user = await User.findByPk(id);
             if (!user) {
                 console.warn(`User with ID ${id} not found.`);
                 return res.status(404).json({ message: 'User not found' });
             }
-    
+
             console.log(`User found:`, user);
-    
+
             // Update user fields without modifying the password
             user.name = name || user.name;
             user.email = email || user.email;
@@ -120,12 +120,12 @@ const userController = {
             user.isAdmin = isAdmin !== undefined ? isAdmin : user.isAdmin;
             user.isActive = isActive !== undefined ? isActive : user.isActive;
             user.isSuperAdmin = isSuperAdmin !== undefined ? isSuperAdmin : user.isSuperAdmin;
-    
+
             console.log("No password field processed. Updating user information only.");
-    
+
             // Save the updated user without updating the password
             await user.save();
-    
+
             console.log("User updated successfully:", user);
             res.status(200).json({ message: 'User updated successfully', user });
         } catch (error) {
@@ -146,7 +146,7 @@ const userController = {
             }
         }
     },
-    
+
 
 
     async updatePassword(req, res) {
@@ -165,6 +165,11 @@ const userController = {
             }
 
             console.log(`User found:`, user);
+
+            // Validate password length
+            if (newPassword.length < 6) {
+                return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+            }
 
             // Verify the old password using bcrypt
             const isPasswordValid = await bcrypt.compare(oldPassword, user.password);

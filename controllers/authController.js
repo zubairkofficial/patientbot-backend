@@ -50,11 +50,33 @@ const sendConfirmationEmail = async (user) => {
 export const signup = async (req, res) => {
     const { name, email, password, username } = req.body;
 
+    // Validate all required fields
+    if (!name || !email || !password || !username) {
+        return res.status(400).json({ message: 'All fields are required: name, email, password, and username.' });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Invalid email format.' });
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+        return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+    }
+
     try {
-        // Check if user already exists
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-            return res.status(400).json({ message: 'Email already in use.' });
+        // Check if email already exists
+        const existingUserByEmail = await User.findOne({ where: { email } });
+        if (existingUserByEmail) {
+            return res.status(400).json({ message: 'Email is already in use.' });
+        }
+
+        // Check if username already exists
+        const existingUserByUsername = await User.findOne({ where: { username } });
+        if (existingUserByUsername) {
+            return res.status(400).json({ message: 'Username is already taken.' });
         }
 
         // Create the user
@@ -62,12 +84,13 @@ export const signup = async (req, res) => {
             name,
             email,
             username,
-            password, // Password will be hashed automatically due to the hook in the User model
+            password, // Assuming the User model has a hook to hash the password automatically
         });
 
         // Send confirmation email
         await sendConfirmationEmail(newUser);
 
+        // Send success response
         res.status(201).json({
             message: 'Signed up successfully. Please check your email for verification.',
             user: {
@@ -82,7 +105,7 @@ export const signup = async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating user:', error);
-        res.status(500).json({ message: `Internal server error  ${error.message}`, });
+        res.status(500).json({ message: `Internal server error: ${error.message}` });
     }
 };
 

@@ -5,6 +5,7 @@ import initSymptomModel from './Symptom.js';
 import initPatientSymptomModel from './PatientSymptom.js';
 import initUserModel from './User.js';
 import initAssignmentModel from './Assignment.js';
+import initPromptModel from './Prompt.js'; // Import Prompt model
 
 dotenv.config();
 
@@ -23,18 +24,20 @@ const Patient = initPatientModel(sequelize);
 const Symptom = initSymptomModel(sequelize);
 const PatientSymptom = initPatientSymptomModel(sequelize);
 const User = initUserModel(sequelize);
-const Assignment = initAssignmentModel(sequelize);  // New bridge model
+const Assignment = initAssignmentModel(sequelize);
+const Prompt = initPromptModel(sequelize); // Initialize Prompt model
 
 // Set up associations
 Patient.belongsToMany(Symptom, { through: PatientSymptom, foreignKey: 'patientId' });
 Symptom.belongsToMany(Patient, { through: PatientSymptom, foreignKey: 'symptomId' });
 
-// Set up Patient-User associations
 Patient.belongsToMany(User, { through: Assignment, foreignKey: 'patientId' });
 User.belongsToMany(Patient, { through: Assignment, foreignKey: 'userId' });
 
-
+// Set up Prompt associations
+Patient.hasOne(Prompt, { foreignKey: 'patientId' });
+Prompt.belongsTo(Patient, { foreignKey: 'patientId' });
 
 // Export models and sequelize instance
-export { sequelize, Patient, Symptom, PatientSymptom, User, Assignment };
+export { sequelize, Patient, Symptom, PatientSymptom, User, Assignment, Prompt };
 export default sequelize;
