@@ -82,31 +82,40 @@ const patientController = {
     async updatePatient(req, res) {
         const { id } = req.params;
         const { name, answer, symptoms, mandatoryQuestions, medicalHistory, predefinedTreatments } = req.body;
-
+    
         // Validate required fields
-        if (!name || !answer) {
-            return res.status(400).json({ message: 'Name and answer are required.' });
+        if (!name && !answer && !symptoms && !mandatoryQuestions && !medicalHistory && !predefinedTreatments) {
+            return res.status(400).json({ message: 'At least one field must be provided to update.' });
         }
-
+    
         try {
             const patient = await Patient.findByPk(id);
             if (!patient) {
                 return res.status(404).json({ message: 'Patient not found' });
             }
-
-            // Update patient details
-            await patient.update({ name, answer });
-
-            // Update prompt details if provided
+    
+            // Update patient details if fields are provided
+            if (name) {
+                await patient.update({ name });
+            }
+            if (answer) {
+                await patient.update({ answer });
+            }
+    
+            // Update prompt details if fields are provided
             const prompt = await Prompt.findOne({ where: { patientId: id } });
             if (prompt) {
-                await prompt.update({
-                    mandatoryQuestions: mandatoryQuestions || prompt.mandatoryQuestions,
-                    medicalHistory: medicalHistory || prompt.medicalHistory,
-                    predefinedTreatments: predefinedTreatments || prompt.predefinedTreatments,
-                });
+                if (mandatoryQuestions) {
+                    await prompt.update({ mandatoryQuestions });
+                }
+                if (medicalHistory) {
+                    await prompt.update({ medicalHistory });
+                }
+                if (predefinedTreatments) {
+                    await prompt.update({ predefinedTreatments });
+                }
             }
-
+    
             // Update symptoms associations if symptoms are provided
             if (symptoms && Array.isArray(symptoms) && symptoms.length > 0) {
                 const symptomRecords = await Symptom.findAll({
@@ -114,13 +123,14 @@ const patientController = {
                 });
                 await patient.setSymptoms(symptomRecords); // Replaces existing associations with new ones
             }
-
+    
             res.status(200).json({ message: 'Patient updated successfully', patient });
         } catch (error) {
             console.error('Error updating patient:', error);
             res.status(500).json({ error: 'An error occurred while updating the patient' });
         }
     },
+    
 
     // Delete a patient
     async deletePatient(req, res) {
