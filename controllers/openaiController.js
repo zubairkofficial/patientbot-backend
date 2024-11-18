@@ -1,4 +1,3 @@
-
 import { calculateScore, extractInformation, extractInformationSummary } from "../services/openaiService.js";
 import { Assignment, Patient, Prompt, Symptom } from "../models/index.js"; // Import Symptom model
 
