@@ -45,7 +45,7 @@ export default function initUserModel(sequelize) {
         username: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true,
+            
         },
         isAdmin: {
             type: DataTypes.BOOLEAN,
