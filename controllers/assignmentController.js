@@ -5,6 +5,7 @@ import { Symptom } from '../models/index.js';
 import { Op } from 'sequelize';
 
 const assignmentController = {
+    
     async assignPatient(req, res) {
         const { studentId, patientIds, dueDate } = req.body;
 
@@ -136,7 +137,7 @@ const assignmentController = {
                         model: Patient,
                         through: {
                             model: Assignment,
-                            attributes: ['status', 'dueDate', 'score', 'feedback'], // Include additional assignment details
+                            attributes: ['status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog'], // Include additional assignment details
                         },
                     },
                 ],
@@ -153,8 +154,11 @@ const assignmentController = {
                     dueDate: patient.Assignment.dueDate,
                     score: patient.Assignment.score,
                     feedback: patient.Assignment.feedback,
+                    findings: patient.Assignment.findings,
+                    conversationLog: patient.Assignment.conversationLog,
                 })),
             }));
+            console.log("object: response", response)
 
             res.status(200).json({ students: response });
         } catch (error) {
@@ -162,14 +166,57 @@ const assignmentController = {
             res.status(500).json({ message: 'An error occurred while fetching assigned patients.' });
         }
     },
+
+    async getAssignedStudents(req, res) {
+        console.log("Fetching all students assigned to patients");
+        try {
+            // Fetch all patients with their assigned students and assignment details
+            const patients = await Patient.findAll({
+                include: [
+                    {
+                        model: User, // Students
+                        through: {
+                            model: Assignment,
+                            attributes: ['status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog'], // Include assignment details
+                        },
+                    },
+                ],
+            });
+
+            // Map the data to structure it as needed
+            const response = patients.map((patient) => ({
+                id: patient.id,
+                name: patient.name,
+                assignedStudents: patient.Users.map((student) => ({
+                    id: student.id,
+                    name: student.name,
+                    username: student.username,
+                    email: student.email,
+                    status: student.Assignment.status,
+                    dueDate: student.Assignment.dueDate,
+                    score: student.Assignment.score,
+                    feedback: student.Assignment.feedback,
+                    findings: patient.Assignment.findings,
+                    conversationLog: patient.Assignment.conversationLog,
+                })),
+            }));
+
+            // Send the response with all patients and their assigned students
+            res.status(200).json({ patients: response });
+        } catch (error) {
+            console.error('Error fetching assigned students for all patients:', error.message, error.stack);
+            res.status(500).json({ message: 'An error occurred while fetching assigned students for all patients.' });
+        }
+    },
+
     async getAssignmentsByStudentId(req, res) {
         const { studentId } = req.params;
-    
+
         // Validate input
         if (!studentId) {
             return res.status(400).json({ message: 'Student ID is required.' });
         }
-    
+
         try {
             // Fetch the student with the specified ID along with assigned patients, assignment details, and symptoms
             const student = await User.findByPk(studentId, {
@@ -195,12 +242,12 @@ const assignmentController = {
                     },
                 ],
             });
-    
+
             // Check if student exists
             if (!student) {
                 return res.status(404).json({ message: 'Student not found.' });
             }
-    
+
             // Map the data to structure it as needed
             const response = {
                 id: student.id,
@@ -229,15 +276,13 @@ const assignmentController = {
                     treatmentScore: patient.Assignment.treatmentScore,
                 })),
             };
-    
+
             res.status(200).json(response);
         } catch (error) {
             console.error('Error fetching assignments for student:', error.message, error.stack);
             res.status(500).json({ message: 'An error occurred while fetching assignments for the student.' });
         }
     },
-    
-    
 
     async storeConversationLog(req, res) {
         const { studentId, patientId, messages } = req.body;
@@ -275,7 +320,7 @@ const assignmentController = {
 
     async submitAssignment(req, res) {
         const { studentId, patientId, findings } = req.body;
-    
+
         // Validate input
         if (!studentId || !patientId) {
             return res.status(400).json({ message: 'Student ID, Patient ID, and findings are required.' });
@@ -284,7 +329,7 @@ const assignmentController = {
         if (!findings) {
             return res.status(400).json({ message: 'Sumbit your diagnosis to proceed.' });
         }
-    
+
         try {
             // Find the specific assignment entry
             const assignment = await Assignment.findOne({
@@ -293,7 +338,7 @@ const assignmentController = {
                     patientId: patientId,
                 },
             });
-    
+
             // Check if assignment exists
             if (!assignment) {
                 return res.status(404).json({ message: 'Assignment not found for the given student and patient.' });
@@ -301,19 +346,19 @@ const assignmentController = {
             if (!assignment.conversationLog) {
                 return res.status(400).json({ message: 'Please talk to patient before submitting the assignment.' });
             }
-    
+
             // Update the findings and status
             assignment.findings = findings;
             assignment.status = 'completed';
             await assignment.save();
-    
+
             res.status(200).json({ message: 'Assignment submitted successfully.' });
         } catch (error) {
             console.error('Error submitting assignment:', error);
             res.status(500).json({ message: 'An error occurred while submitting the assignment.' });
         }
     }
-    
+
 
 };
 
