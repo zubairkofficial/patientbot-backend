@@ -196,8 +196,9 @@ const assignmentController = {
                     dueDate: student.Assignment.dueDate,
                     score: student.Assignment.score,
                     feedback: student.Assignment.feedback,
-                    findings: patient.Assignment.findings,
-                    conversationLog: patient.Assignment.conversationLog,
+                    findings: student.Assignment.findings,
+                    conversationLog: student.Assignment.conversationLog,
+                    date: student.Assignment.createdAt,
                 })),
             }));
 

@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Define the route to start the WebSocket connection
-router.post('/extract', openaiController.extractData);
+router.post('/results', openaiController.extractData);
+router.post('/resultsByPatient', openaiController.extractDataMultiple);
 
 export default router;
