@@ -48,12 +48,17 @@ export default function initAssignmentModel(sequelize) {
         symptomsScore: {
             type: DataTypes.FLOAT,
             allowNull: true,
-            comment: 'Score for documented symptoms (50%)',
+            comment: 'Score for documented symptoms (40%)',
         },
         treatmentScore: {
             type: DataTypes.FLOAT,
             allowNull: true,
             comment: 'Score for suggested treatments (5%)',
+        },
+        diagnosisScore: {
+            type: DataTypes.FLOAT,
+            allowNull: true,
+            comment: 'Score for suggested Diagnosis (10%)',
         },
         conversationLog: {
             type: DataTypes.TEXT,

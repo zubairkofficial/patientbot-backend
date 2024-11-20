@@ -39,6 +39,10 @@ Symptom.belongsToMany(Patient, { through: PatientSymptom, foreignKey: 'symptomId
 
 // Patient and User relationship
 Patient.belongsToMany(User, { through: Assignment, foreignKey: 'patientId' });
+
+Assignment.belongsTo(Patient, { foreignKey: 'patientId' });
+Assignment.belongsTo(User, { foreignKey: 'userId' });
+
 User.belongsToMany(Patient, { through: Assignment, foreignKey: 'userId' });
 
 // Patient and Prompt relationship

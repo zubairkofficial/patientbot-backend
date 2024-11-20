@@ -189,7 +189,7 @@ export async function calculateScore(string, json) {
                     "feedback": ""
                 }}
 
-                Please evaluate the student's performance based on the provided scoring criteria and give feedback for each section accordingly.Always return only JSON.
+                Please evaluate the student's performance based on the provided scoring criteria and give feedback for each section accordingly.Always return only JSON except feedback. Feedback should be in string paragraphs.
             `
         }
     ]);

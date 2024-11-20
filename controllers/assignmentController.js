@@ -5,7 +5,7 @@ import { Symptom } from '../models/index.js';
 import { Op } from 'sequelize';
 
 const assignmentController = {
-    
+
     async assignPatient(req, res) {
         const { studentId, patientIds, dueDate } = req.body;
 
@@ -137,7 +137,7 @@ const assignmentController = {
                         model: Patient,
                         through: {
                             model: Assignment,
-                            attributes: ['status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog'], // Include additional assignment details
+                            attributes: ['id', 'status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog'], // Include additional assignment details
                         },
                     },
                 ],
@@ -150,6 +150,7 @@ const assignmentController = {
                 assignedPatients: student.Patients.map((patient) => ({
                     id: patient.id,
                     name: patient.name,
+                    assignmentId: patient.Assignment.id,
                     status: patient.Assignment.status,
                     dueDate: patient.Assignment.dueDate,
                     score: patient.Assignment.score,
@@ -177,7 +178,7 @@ const assignmentController = {
                         model: User, // Students
                         through: {
                             model: Assignment,
-                            attributes: ['status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog'], // Include assignment details
+                            attributes: ['id', 'status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog'], // Include assignment details
                         },
                     },
                 ],
@@ -193,6 +194,7 @@ const assignmentController = {
                     username: student.username,
                     email: student.email,
                     status: student.Assignment.status,
+                    assignmentId: student.Assignment.id,
                     dueDate: student.Assignment.dueDate,
                     score: student.Assignment.score,
                     feedback: student.Assignment.feedback,
@@ -357,6 +359,116 @@ const assignmentController = {
         } catch (error) {
             console.error('Error submitting assignment:', error);
             res.status(500).json({ message: 'An error occurred while submitting the assignment.' });
+        }
+    },
+
+    async getAssignmentById(req, res) {
+        const { id } = req.params;
+
+        // Validate input
+        if (!id) {
+            return res.status(400).json({ message: 'Assignment ID is required.' });
+        }
+
+        try {
+            // Find the assignment with the specified ID, including the patient and user (student)
+            const assignment = await Assignment.findByPk(id, {
+                include: [
+                    {
+                        model: Patient,
+                        attributes: ['id', 'name'], // Fetch patient name and ID
+                    },
+                    {
+                        model: User,
+                        attributes: ['id', 'name'], // Fetch student name and ID
+                    },
+                ],
+            });
+
+            // Check if assignment exists
+            if (!assignment) {
+                return res.status(404).json({ message: 'Assignment not found.' });
+            }
+
+            // Structure the response
+            const response = {
+                id: assignment.id,
+                status: assignment.status,
+                dueDate: assignment.dueDate,
+                findings: assignment.findings,
+                feedback: assignment.feedback,
+                score: assignment.score,
+                mandatoryQuestionScore: assignment.mandatoryQuestionScore,
+                symptomsScore: assignment.symptomsScore,
+                treatmentScore: assignment.treatmentScore,
+                diagnosisScore: assignment.diagnosisScore,
+                conversationLog: assignment.conversationLog ? JSON.parse(assignment.conversationLog) : null,
+                patient: assignment.Patient ? { id: assignment.Patient.id, name: assignment.Patient.name } : null,
+                student: assignment.User ? { id: assignment.User.id, name: assignment.User.name } : null,
+            };
+
+            res.status(200).json(response);
+        } catch (error) {
+            console.error('Error fetching assignment by ID:', error.message, error.stack);
+            res.status(500).json({ message: 'An error occurred while fetching the assignment.' });
+        }
+    },
+    async updateAssignment(req, res) {
+        try {
+            const { assignmentId, feedback, scores } = req.body;
+
+            if (!assignmentId || !feedback || !scores) {
+                return res.status(400).json({
+                    error: "Assignment ID, feedback, and scores are required."
+                });
+            }
+
+            // Fetch the assignment from the database using the provided ID
+            const assignment = await Assignment.findByPk(assignmentId);
+
+            if (!assignment) {
+                return res.status(404).json({ error: "Assignment not found." });
+            }
+
+            // Validate and update scores
+            const {
+                totalScore,
+                mandatoryQuestionScore,
+                symptomsScore,
+                treatmentScore,
+                diagnosisScore
+            } = scores;
+
+            if (
+                totalScore == null ||
+                mandatoryQuestionScore == null ||
+                symptomsScore == null ||
+                treatmentScore == null ||
+                diagnosisScore == null
+            ) {
+                return res.status(400).json({
+                    error:
+                        "All score fields (totalScore, mandatoryQuestionScore, symptomsScore, treatmentScore, diagnosisScore) are required."
+                });
+            }
+
+            // Update assignment fields
+            assignment.feedback = feedback;
+            assignment.score = totalScore;
+            assignment.mandatoryQuestionScore = mandatoryQuestionScore;
+            assignment.symptomsScore = symptomsScore;
+            assignment.treatmentScore = treatmentScore;
+            assignment.diagnosisScore = diagnosisScore;
+
+            await assignment.save();
+
+            return res.json({
+                message: "Assignment updated successfully.",
+                assignment
+            });
+        } catch (error) {
+            console.error("Error updating assignment:", error);
+            return res.status(500).json({ error: "An error occurred while updating the assignment." });
         }
     }
 
