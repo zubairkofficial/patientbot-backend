@@ -31,21 +31,21 @@ class ApiKeyController {
     /**
  * Get Active API Key for Deepgram
  */
-static async getActiveDeepgramKey(req, res) {
-    try {
-        const apiKey = await ApiKey.findOne({
-            where: { service: "Deepgram", isActive: true },
-        });
+    static async getActiveDeepgramKey(req, res) {
+        try {
+            const apiKey = await ApiKey.findOne({
+                where: { service: "Deepgram", isActive: true },
+            });
 
-        if (!apiKey) {
-            return res.status(404).json({ message: "No active API key found for Deepgram." });
+            if (!apiKey) {
+                return res.status(404).json({ message: "No active API key found for Deepgram." });
+            }
+
+            return res.status(200).json(apiKey);
+        } catch (error) {
+            return res.status(500).json({ message: "Error fetching API key", error: error.message });
         }
-
-        return res.status(200).json(apiKey);
-    } catch (error) {
-        return res.status(500).json({ message: "Error fetching API key", error: error.message });
     }
-}
 
 
     /**

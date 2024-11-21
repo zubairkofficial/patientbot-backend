@@ -20,11 +20,11 @@ async function aiEvaluateScore(data) {
     const student_diagnosis = JSON.stringify(data.student_diagnosis);
     const predefined_appropriate_treatments = JSON.stringify(data.predefined_appropriate_treatments);
     const student_appropriate_treatments = JSON.stringify(data.student_appropriate_treatments);
-    
+
     const promptTemplate = ChatPromptTemplate.fromMessages([
-      { 
-        role: "system", 
-        content: `
+        {
+            role: "system",
+            content: `
           You are an examiner who evaluates student responses for accuracy and completeness. Given the data of predefined correct answers and the student's responses, Analyze the data properly, score the student's performance out of 100 based on the following criteria:
           
           - **Mandatory Questions** (45%): Evaluate if the student's questions address the key areas in the mandatory questions provided.
@@ -36,23 +36,23 @@ async function aiEvaluateScore(data) {
           - **Score**: Overall Percentage out of 100 reflecting the overall accuracy and completeness.
           - **Details**: Breakdown of scores percentage between 0 to 100 for each section (Mandatory Questions, Symptoms, Diagnosis, Treatments).
           - **Feedback**: Specific suggestions on areas where the student performed well or needs improvement.
-        ` 
-      },
-      { 
-        role: "user", 
-        content: `
+        `
+        },
+        {
+            role: "user",
+            content: `
           Here is the data:
           
           - **Predefined Mandatory Questions**: ${predefined_mandatory_questions}
           - **Student Mandatory Questions**: ${student_mandatory_questions}
-          - **Predefined Symptoms**: ${{predefined_symptoms}}
-          - **Student Symptoms**: ${{student_symptoms}}
+          - **Predefined Symptoms**: ${{ predefined_symptoms }}
+          - **Student Symptoms**: ${{ student_symptoms }}
           - **Predefined Diagnosis**: ${predefined_diagnosis}
           - **Student Diagnosis**: ${student_diagnosis}
           - **Predefined Treatments**: ${predefined_appropriate_treatments}
           - **Student Treatments**: ${student_appropriate_treatments}
         `
-      }
+        }
     ]);
 
     const parser = new StringOutputParser();
@@ -63,9 +63,9 @@ async function aiEvaluateScore(data) {
 }
 
 // Example usage
-(async () => {
+const data = async () => {
     const data = {
-       predefined_mandatory_questions: [
+        predefined_mandatory_questions: [
             "This is test Mandatory Question"
         ],
         student_mandatory_questions: [
@@ -111,4 +111,6 @@ async function aiEvaluateScore(data) {
 
     const result = await aiEvaluateScore(data);
     console.log(result);
-})();
+}
+
+data();

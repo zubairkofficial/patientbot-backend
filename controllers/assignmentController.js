@@ -413,6 +413,7 @@ const assignmentController = {
             res.status(500).json({ message: 'An error occurred while fetching the assignment.' });
         }
     },
+    
     async updateAssignment(req, res) {
         try {
             const { assignmentId, feedback, scores } = req.body;

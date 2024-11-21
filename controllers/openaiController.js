@@ -117,11 +117,26 @@ const assignmentController = {
 
 
 
-      assignment.score = jsonResult.total_score;
       assignment.mandatoryQuestionScore = jsonResult.mandatory_question_score;
       assignment.symptomsScore = jsonResult.symptoms_score;
       assignment.treatmentScore = jsonResult.treatments_score;
       assignment.diagnosisScore = jsonResult.diagnosis_score;
+      assignment.feedback = jsonResult.feedback;
+      assignment.status = 'marked';
+
+      // Convert scores to numbers
+      assignment.mandatoryQuestionScore = parseFloat(jsonResult.mandatory_question_score);
+      assignment.symptomsScore = parseFloat(jsonResult.symptoms_score);
+      assignment.treatmentScore = parseFloat(jsonResult.treatments_score);
+      assignment.diagnosisScore = parseFloat(jsonResult.diagnosis_score);
+
+      // Calculate total score
+      assignment.score = assignment.mandatoryQuestionScore +
+        assignment.symptomsScore +
+        assignment.treatmentScore +
+        assignment.diagnosisScore;
+
+      // Assign remaining properties
       assignment.feedback = jsonResult.feedback;
       assignment.status = 'marked';
 
@@ -259,17 +274,16 @@ const assignmentController = {
         return res.status(404).json({ error: "Assignment not found." });
       }
 
-      // Validate and update scores
+      // Destructure and convert scores to numbers
       const {
-        totalScore,
         mandatoryQuestionScore,
         symptomsScore,
         treatmentScore,
         diagnosisScore
       } = scores;
 
+      // Check if any score is missing or not a number
       if (
-        totalScore == null ||
         mandatoryQuestionScore == null ||
         symptomsScore == null ||
         treatmentScore == null ||
@@ -277,17 +291,42 @@ const assignmentController = {
       ) {
         return res.status(400).json({
           error:
-            "All score fields (totalScore, mandatoryQuestionScore, symptomsScore, treatmentScore, diagnosisScore) are required."
+            "All score fields (mandatoryQuestionScore, symptomsScore, treatmentScore, diagnosisScore) are required."
         });
       }
+
+      // Convert scores to numbers
+      const mandatoryQuestionScoreNum = parseFloat(mandatoryQuestionScore);
+      const symptomsScoreNum = parseFloat(symptomsScore);
+      const treatmentScoreNum = parseFloat(treatmentScore);
+      const diagnosisScoreNum = parseFloat(diagnosisScore);
+
+      // Check for NaN values after conversion
+      if (
+        isNaN(mandatoryQuestionScoreNum) ||
+        isNaN(symptomsScoreNum) ||
+        isNaN(treatmentScoreNum) ||
+        isNaN(diagnosisScoreNum)
+      ) {
+        return res.status(400).json({
+          error: "All scores must be valid numbers."
+        });
+      }
+
+      // Calculate totalScore
+      const totalScore =
+        mandatoryQuestionScoreNum +
+        symptomsScoreNum +
+        treatmentScoreNum +
+        diagnosisScoreNum;
 
       // Update assignment fields
       assignment.feedback = feedback;
       assignment.score = totalScore;
-      assignment.mandatoryQuestionScore = mandatoryQuestionScore;
-      assignment.symptomsScore = symptomsScore;
-      assignment.treatmentScore = treatmentScore;
-      assignment.diagnosisScore = diagnosisScore;
+      assignment.mandatoryQuestionScore = mandatoryQuestionScoreNum;
+      assignment.symptomsScore = symptomsScoreNum;
+      assignment.treatmentScore = treatmentScoreNum;
+      assignment.diagnosisScore = diagnosisScoreNum;
 
       await assignment.save();
 
@@ -297,9 +336,12 @@ const assignmentController = {
       });
     } catch (error) {
       console.error("Error updating assignment:", error);
-      return res.status(500).json({ error: "An error occurred while updating the assignment." });
+      return res.status(500).json({
+        error: "An error occurred while updating the assignment."
+      });
     }
   }
+
 }
 
 
