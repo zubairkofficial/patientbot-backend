@@ -12,7 +12,7 @@ function cleanConversationLog(conversationLog) {
     .join("\n");
 }
 
-const assignmentController = {
+const openaiController = {
   async extractData(req, res) {
     try {
       const { patientId, studentId } = req.body;
@@ -344,6 +344,4 @@ const assignmentController = {
 
 }
 
-
-
-export default assignmentController;
+export default openaiController;
