@@ -77,7 +77,6 @@ const patientController = {
         }
     },
     
-
     // Update a patient
     async updatePatient(req, res) {
         const { id } = req.params;

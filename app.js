@@ -8,6 +8,10 @@ import assignmentRoutes from './routes/assignmentRoutes.js'
 import homeRoutes from './routes/homeRoutes.js'
 import openaiRoutes from './routes/openaiRoutes.js'
 import apiKeyRoutes from './routes/apiKeyRoutes.js'
+import testRoutes from './routes/testRoutes.js'; // Import the test route
+
+
+
 const app = express();
 
 app.use(cors()); // Enable CORS for cross-origin requests
@@ -22,6 +26,7 @@ app.use('/api/v1/assignments', assignmentRoutes);
 app.use('/api/v1/home', homeRoutes);
 app.use('/api/v1/openai', openaiRoutes);
 app.use('/api/v1/apiKeys', apiKeyRoutes);
+app.use('/api/v1/testing', testRoutes);
 
 app.get('/api/v1/',(req,res)=> {
     res.send({"Hello": "World"})

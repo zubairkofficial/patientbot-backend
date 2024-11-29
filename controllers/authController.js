@@ -46,7 +46,6 @@ const sendConfirmationEmail = async (user) => {
         throw new Error(`Error sending email: ${error.message}`);
     }
 };
-
 export const signup = async (req, res) => {
     const { name, email, password, username } = req.body;
 
@@ -108,7 +107,6 @@ export const signup = async (req, res) => {
         res.status(500).json({ message: `Internal server error: ${error.message}` });
     }
 };
-
 export const verifyEmail = async (req, res) => {
     const { token, email } = req.query;
 
@@ -132,8 +130,6 @@ export const verifyEmail = async (req, res) => {
         res.status(500).json({ message: `Internal server error: ${error.message}` });
     }
 };
-
-
 export const signin = async (req, res) => {
     const { email, password } = req.body;
 

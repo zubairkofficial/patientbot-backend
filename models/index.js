@@ -8,6 +8,7 @@ import initAssignmentModel from './Assignment.js';
 import initPromptModel from './Prompt.js';
 import initChatGPTModel from './ChatGPT.js'; // Import Modal (ChatGPTModel)
 import initApiKeyModel from './ApiKey.js'; // Import ApiKey model
+import initAssignmentAttemptModel from './AssignmentAttempt.js';
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ const Assignment = initAssignmentModel(sequelize);
 const Prompt = initPromptModel(sequelize);
 const ChatGPTModel = initChatGPTModel(sequelize); // Initialize ChatGPTModel
 const ApiKey = initApiKeyModel(sequelize); // Initialize ApiKey
+const AssignmentAttempt = initAssignmentAttemptModel(sequelize);
 
 // Set up relationships
 
@@ -53,6 +55,15 @@ Prompt.belongsTo(Patient, { foreignKey: 'patientId' });
 ChatGPTModel.hasMany(ApiKey, { foreignKey: 'modelId', as: 'apiKeys' });
 ApiKey.belongsTo(ChatGPTModel, { foreignKey: 'modelId', as: 'model' });
 
+Assignment.hasMany(AssignmentAttempt, { 
+    foreignKey: 'assignmentId',
+    as: 'attempts' 
+});
+AssignmentAttempt.belongsTo(Assignment, { 
+    foreignKey: 'assignmentId',
+    as: 'assignment' 
+});
+
 // Export models and sequelize instance
-export { sequelize, Patient, Symptom, PatientSymptom, User, Assignment, Prompt, ChatGPTModel, ApiKey };
+export { sequelize, Patient, Symptom, PatientSymptom, User, Assignment, AssignmentAttempt, Prompt, ChatGPTModel, ApiKey };
 export default sequelize;

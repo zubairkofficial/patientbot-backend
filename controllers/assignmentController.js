@@ -7,7 +7,7 @@ import { Op } from 'sequelize';
 const assignmentController = {
 
     async assignPatient(req, res) {
-        const { studentId, patientIds, dueDate } = req.body;
+        const { studentId, patientIds, dueDate, isMarkable } = req.body;
 
         // Check if studentId and patientIds are provided
         if (!studentId || !Array.isArray(patientIds) || patientIds.length === 0) {
@@ -54,6 +54,7 @@ const assignmentController = {
                 symptomsScore: null,
                 treatmentScore: null,
                 feedback: null,
+                isMarkable: isMarkable
             }));
 
             // Bulk create the assignments
@@ -67,7 +68,7 @@ const assignmentController = {
     },
 
     async assignStudent(req, res) {
-        const { patientId, studentIds, dueDate } = req.body;
+        const { patientId, studentIds, dueDate, isMarkable } = req.body;
 
         // Check if patientId and studentIds are provided
         if (!patientId || !Array.isArray(studentIds) || studentIds.length === 0) {
@@ -115,6 +116,7 @@ const assignmentController = {
                 symptomsScore: null,
                 treatmentScore: null,
                 feedback: null,
+                isMarkable
             }));
 
             // Bulk create the assignments
@@ -130,36 +132,48 @@ const assignmentController = {
     async getAssignedPatients(req, res) {
         console.log("Fetching assigned patients");
         try {
-            // Fetch all users (students) with their assigned patients and assignment details
-            const students = await User.findAll({
+            // Fetch all assignments with related student and patient details
+            const assignments = await Assignment.findAll({
                 include: [
                     {
-                        model: Patient,
-                        through: {
-                            model: Assignment,
-                            attributes: ['id', 'status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog'], // Include additional assignment details
-                        },
+                        model: User,
+                        attributes: ['id', 'name'],
                     },
+                    {
+                        model: Patient,
+                        attributes: ['id', 'name'],
+                    }
                 ],
+                attributes: ['id', 'status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog']
             });
 
-            // Map the data to structure it as needed
-            const response = students.map((student) => ({
-                id: student.id,
-                name: student.name,
-                assignedPatients: student.Patients.map((patient) => ({
-                    id: patient.id,
-                    name: patient.name,
-                    assignmentId: patient.Assignment.id,
-                    status: patient.Assignment.status,
-                    dueDate: patient.Assignment.dueDate,
-                    score: patient.Assignment.score,
-                    feedback: patient.Assignment.feedback,
-                    findings: patient.Assignment.findings,
-                    conversationLog: patient.Assignment.conversationLog,
-                })),
-            }));
-            console.log("object: response", response)
+            // Group assignments by student
+            const studentMap = new Map();
+
+            assignments.forEach((assignment) => {
+                if (!studentMap.has(assignment.User.id)) {
+                    studentMap.set(assignment.User.id, {
+                        id: assignment.User.id,
+                        name: assignment.User.name,
+                        assignedPatients: []
+                    });
+                }
+
+                studentMap.get(assignment.User.id).assignedPatients.push({
+                    id: assignment.Patient.id,
+                    name: assignment.Patient.name,
+                    assignmentId: assignment.id,
+                    status: assignment.status,
+                    dueDate: assignment.dueDate,
+                    score: assignment.score,
+                    feedback: assignment.feedback,
+                    findings: assignment.findings,
+                    conversationLog: assignment.conversationLog,
+                });
+            });
+
+            const response = Array.from(studentMap.values());
+            console.log("object: response", response);
 
             res.status(200).json({ students: response });
         } catch (error) {
@@ -226,20 +240,21 @@ const assignmentController = {
                 include: [
                     {
                         model: Patient,
-                        attributes: ['id', 'name', 'answer'], // Remove 'prompt', as it no longer exists
+                        attributes: ['id', 'name', 'answer'], // Include required Patient attributes
                         through: {
                             model: Assignment,
-                            attributes: ['status', 'dueDate', 'score', 'feedback', 'mandatoryQuestionScore', 'symptomsScore', 'treatmentScore'],
+                            attributes: ['id', 'status', 'updatedAt', 'dueDate', 'score', 'feedback',
+                                'mandatoryQuestionScore', 'symptomsScore', 'treatmentScore', 'isMarkable'],
                         },
                         include: [
                             {
                                 model: Symptom,
-                                attributes: ['id', 'name', 'description'], // Include desired attributes from Symptom
-                                through: { attributes: [] }, // Exclude PatientSymptom join table attributes
+                                attributes: ['id', 'name', 'description'],
+                                through: { attributes: [] },
                             },
                             {
                                 model: Prompt,
-                                attributes: ['mandatoryQuestions', 'medicalHistory', 'predefinedTreatments'], // Include desired attributes from Prompt
+                                attributes: ['mandatoryQuestions', 'medicalHistory', 'predefinedTreatments'],
                             },
                         ],
                     },
@@ -264,26 +279,28 @@ const assignmentController = {
                         name: symptom.name,
                         description: symptom.description,
                     })),
-                    prompt: {
+                    prompt: patient.Prompt ? {
                         mandatoryQuestions: patient.Prompt.mandatoryQuestions,
                         medicalHistory: patient.Prompt.medicalHistory,
                         predefinedTreatments: patient.Prompt.predefinedTreatments,
-                    },
-                    // Assignment details
+                    } : null,
+                    assignmentId: patient.Assignment.id,
                     status: patient.Assignment.status,
+                    updatedAt: patient.Assignment.updatedAt,
                     dueDate: patient.Assignment.dueDate,
                     score: patient.Assignment.score,
                     feedback: patient.Assignment.feedback,
                     mandatoryQuestionScore: patient.Assignment.mandatoryQuestionScore,
                     symptomsScore: patient.Assignment.symptomsScore,
                     treatmentScore: patient.Assignment.treatmentScore,
+                    isMarkable: patient.Assignment.isMarkable,
                 })),
             };
 
             res.status(200).json(response);
         } catch (error) {
             console.error('Error fetching assignments for student:', error.message, error.stack);
-            res.status(500).json({ message: 'An error occurred while fetching assignments for the student.' });
+            res.status(500).json({ message: error.message });
         }
     },
 
@@ -324,13 +341,9 @@ const assignmentController = {
     async submitAssignment(req, res) {
         const { studentId, patientId, findings } = req.body;
 
-        // Validate input
+        // Validate basic input
         if (!studentId || !patientId) {
-            return res.status(400).json({ message: 'Student ID, Patient ID, and findings are required.' });
-        }
-
-        if (!findings) {
-            return res.status(400).json({ message: 'Sumbit your diagnosis to proceed.' });
+            return res.status(400).json({ message: 'Student ID and Patient ID are required.' });
         }
 
         try {
@@ -346,12 +359,21 @@ const assignmentController = {
             if (!assignment) {
                 return res.status(404).json({ message: 'Assignment not found for the given student and patient.' });
             }
+
+            // Check for conversation log
             if (!assignment.conversationLog) {
                 return res.status(400).json({ message: 'Please talk to patient before submitting the assignment.' });
             }
 
-            // Update the findings and status
-            assignment.findings = findings;
+            // Check findings requirement based on isMarkable flag
+            if (assignment.isMarkable) {
+                if (!findings) {
+                    return res.status(400).json({ message: 'Submit your diagnosis to proceed.' });
+                }
+                assignment.findings = findings;
+            }
+
+            // Update status
             assignment.status = 'completed';
             await assignment.save();
 
@@ -398,6 +420,7 @@ const assignmentController = {
                 findings: assignment.findings,
                 feedback: assignment.feedback,
                 score: assignment.score,
+                isMarkable: assignment.isMarkable,
                 mandatoryQuestionScore: assignment.mandatoryQuestionScore,
                 symptomsScore: assignment.symptomsScore,
                 treatmentScore: assignment.treatmentScore,
@@ -413,7 +436,7 @@ const assignmentController = {
             res.status(500).json({ message: 'An error occurred while fetching the assignment.' });
         }
     },
-    
+
     async updateAssignment(req, res) {
         try {
             const { assignmentId, feedback, scores } = req.body;
@@ -471,8 +494,106 @@ const assignmentController = {
             console.error("Error updating assignment:", error);
             return res.status(500).json({ error: "An error occurred while updating the assignment." });
         }
-    }
+    },
 
+    async deleteAssignment(req, res) {
+        const { id } = req.params;
+
+        // Validate input
+        if (!id) {
+            return res.status(400).json({ message: 'Assignment ID is required.' });
+        }
+
+        try {
+            // Find the assignment
+            const assignment = await Assignment.findByPk(id);
+
+            // Check if assignment exists
+            if (!assignment) {
+                return res.status(404).json({ message: 'Assignment not found.' });
+            }
+
+            // Delete the assignment
+            await assignment.destroy();
+
+            res.status(200).json({
+                message: 'Assignment deleted successfully.',
+                deletedAssignmentId: id
+            });
+        } catch (error) {
+            console.error('Error deleting assignment:', error);
+            res.status(500).json({
+                message: 'An error occurred while deleting the assignment.',
+                error: error.message
+            });
+        }
+    },
+
+    async getUnassignedPatients(req, res) {
+        const { studentId } = req.params;
+
+        // Validate input
+        if (!studentId) {
+            return res.status(400).json({ message: 'Student ID is required.' });
+        }
+
+        try {
+            // Fetch all patients assigned to the student
+            const assignedPatients = await Assignment.findAll({
+                where: { userId: studentId },
+                attributes: ['patientId'],
+            });
+
+            const assignedPatientIds = assignedPatients.map(assignment => assignment.patientId);
+
+            // Fetch all patients that are not assigned to the student
+            const unassignedPatients = await Patient.findAll({
+                where: {
+                    id: {
+                        [Op.notIn]: assignedPatientIds,
+                    },
+                },
+            });
+
+            res.status(200).json({ patients: unassignedPatients });
+        } catch (error) {
+            console.error('Error fetching unassigned patients:', error.message, error.stack);
+            res.status(500).json({ message: 'An error occurred while fetching unassigned patients.' });
+        }
+    },
+
+    async getUnassignedStudents(req, res) {
+        const { patientId } = req.params;
+
+        // Validate input
+        if (!patientId) {
+            return res.status(400).json({ message: 'Patient ID is required.' });
+        }
+
+        try {
+            // Fetch all students assigned to the patient
+            const assignedStudents = await Assignment.findAll({
+                where: { patientId: patientId },
+                attributes: ['userId'],
+            });
+
+            const assignedStudentIds = assignedStudents.map(assignment => assignment.userId);
+
+            // Fetch all students that are not assigned to the patient
+            const unassignedStudents = await User.findAll({
+                where: {
+                    id: {
+                        [Op.notIn]: assignedStudentIds,
+                    },
+                },
+            });
+
+            res.status(200).json({ students: unassignedStudents });
+        } catch (error) {
+            console.error('Error fetching unassigned students:', error.message, error.stack);
+            res.status(500).json({ message: 'An error occurred while fetching unassigned students.' });
+        }
+    }
 
 };
 

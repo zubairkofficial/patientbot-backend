@@ -150,7 +150,7 @@ const openaiController = {
       });
     } catch (error) {
       console.error("Error:", error);
-      return res.status(500).json({ error: "An error occurred while processing the data." });
+      return res.status(500).json({ error: error.message });
     }
   },
 
@@ -252,7 +252,7 @@ const openaiController = {
       return res.json({ results });
     } catch (error) {
       console.error("Error:", error);
-      return res.status(500).json({ error: "An error occurred while processing the data." });
+      return res.status(500).json({ error: error.message });
     }
   },
 
@@ -337,11 +337,11 @@ const openaiController = {
     } catch (error) {
       console.error("Error updating assignment:", error);
       return res.status(500).json({
-        error: "An error occurred while updating the assignment."
+        error: error.message
       });
     }
   }
 
 }
-
 export default openaiController;
+
