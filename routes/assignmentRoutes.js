@@ -18,7 +18,7 @@ router.post('/assign-student', assignmentController.assignStudent);
 router.get('/assignment/:id', assignmentController.getAssignmentById);
 router.put('/', assignmentController.updateAssignment);
 router.delete('/:id', assignmentController.deleteAssignment);
-
+router.get('/creator/:creatorId',assignmentController.getAssignedPatientsByCreator)
 // New routes for unassigned patients and students
 router.get('/unassigned-patients/:studentId', assignmentController.getUnassignedPatients);
 router.get('/unassigned-students/:patientId', assignmentController.getUnassignedStudents);

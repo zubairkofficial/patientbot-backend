@@ -25,7 +25,7 @@ const homeController = {
                     status: ['inprogress', 'completed', 'marked'], // Array of possible values for the status column
                 }
             });
-            
+
 
             // Prepare JSON response
             const stats = {
@@ -40,6 +40,46 @@ const homeController = {
         } catch (error) {
             console.error("Error retrieving stats:", error);
             res.status(500).json({ message: 'Error retrieving stats', error: error.message });
+        }
+    },
+    // ... existing code ...
+
+    async getRecentAssessments(req, res) {
+        console.log("Fetching recent assessments");
+        try {
+            // Fetch recent assignments with related student and patient details where status is 'marked'
+            const assignments = await Assignment.findAll({
+                where: {
+                    status: 'marked', // Only get assignments with status 'marked'
+                },
+                include: [
+                    {
+                        model: User,
+                        attributes: ['id', 'name'], // Fetch student details
+                    },
+                    {
+                        model: Patient,
+                        attributes: ['id', 'name'], // Fetch patient details
+                    }
+                ],
+                attributes: ['id', 'score', 'createdAt'], // Include assignment ID, total score, and creation date
+                order: [['createdAt', 'DESC']], // Order by creation date, most recent first
+                limit: 5 // Limit to the most recent 10 assessments
+            });
+
+            // Map the data to structure it as needed
+            const response = assignments.map((assignment) => ({
+                assignmentId: assignment.id,
+                studentName: assignment.User.name,
+                patientName: assignment.Patient.name,
+                totalScore: assignment.score,
+                createdAt: assignment.createdAt,
+            }));
+
+            res.status(200).json({ assessments: response });
+        } catch (error) {
+            console.error('Error fetching recent assessments:', error.message, error.stack);
+            res.status(500).json({ message: 'An error occurred while fetching recent assessments.' });
         }
     },
 };

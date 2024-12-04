@@ -9,6 +9,7 @@ import homeRoutes from './routes/homeRoutes.js'
 import openaiRoutes from './routes/openaiRoutes.js'
 import apiKeyRoutes from './routes/apiKeyRoutes.js'
 import testRoutes from './routes/testRoutes.js'; // Import the test route
+import requestRoutes from './routes/requestRoutes.js'
 
 
 
@@ -23,6 +24,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/patients', patientRoutes);
 app.use('/api/v1/symptoms', symptomRoutes);
 app.use('/api/v1/assignments', assignmentRoutes);
+app.use('/api/v1/requests', requestRoutes);
 app.use('/api/v1/home', homeRoutes);
 app.use('/api/v1/openai', openaiRoutes);
 app.use('/api/v1/apiKeys', apiKeyRoutes);

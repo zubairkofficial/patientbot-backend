@@ -82,6 +82,23 @@ export default function initAssignmentModel(sequelize) {
             allowNull: true,
             comment: 'Detailed feedback on performance. Only applicable if isMarkable is true'
         },
+        creatorId: {
+            type: DataTypes.UUID,
+            allowNull: true,
+            references: {
+                model: 'users',
+                key: 'id',
+            },
+            onDelete: 'CASCADE',
+            comment: 'ID of the admin who created the assignment',
+        },
+        requestStatus: {
+            type: DataTypes.ENUM('pending', 'accepted', 'declined'),
+            allowNull: true,
+            defaultValue: null,
+
+        },
+
     }, {
         sequelize,
         modelName: 'Assignment',

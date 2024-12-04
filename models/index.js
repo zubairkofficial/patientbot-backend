@@ -41,11 +41,13 @@ Symptom.belongsToMany(Patient, { through: PatientSymptom, foreignKey: 'symptomId
 
 // Patient and User relationship
 Patient.belongsToMany(User, { through: Assignment, foreignKey: 'patientId' });
+User.belongsToMany(Patient, { through: Assignment, foreignKey: 'userId' });
+
+
 
 Assignment.belongsTo(Patient, { foreignKey: 'patientId' });
 Assignment.belongsTo(User, { foreignKey: 'userId' });
-
-User.belongsToMany(Patient, { through: Assignment, foreignKey: 'userId' });
+Assignment.belongsTo(User, { foreignKey: 'creatorId', as: 'creator' });
 
 // Patient and Prompt relationship
 Patient.hasOne(Prompt, { foreignKey: 'patientId' });
@@ -55,13 +57,13 @@ Prompt.belongsTo(Patient, { foreignKey: 'patientId' });
 ChatGPTModel.hasMany(ApiKey, { foreignKey: 'modelId', as: 'apiKeys' });
 ApiKey.belongsTo(ChatGPTModel, { foreignKey: 'modelId', as: 'model' });
 
-Assignment.hasMany(AssignmentAttempt, { 
+Assignment.hasMany(AssignmentAttempt, {
     foreignKey: 'assignmentId',
-    as: 'attempts' 
+    as: 'attempts'
 });
-AssignmentAttempt.belongsTo(Assignment, { 
+AssignmentAttempt.belongsTo(Assignment, {
     foreignKey: 'assignmentId',
-    as: 'assignment' 
+    as: 'assignment'
 });
 
 // Export models and sequelize instance

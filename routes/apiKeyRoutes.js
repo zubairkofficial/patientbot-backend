@@ -14,5 +14,6 @@ router.get('/api-keys', apiKeyController.getApiKeys);
 router.put('/api-keys/:id', apiKeyController.updateApiKey);
 router.delete('/api-keys/:id', apiKeyController.deleteApiKey);
 router.get("/active-deepgram", apiKeyController.getActiveDeepgramKey);
+router.get("/active-openai", apiKeyController.getActiveOpenAiKey);
 
 export default router;
