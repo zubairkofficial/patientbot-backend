@@ -519,6 +519,7 @@ const assignmentController = {
                 patient: assignment.Patient ? { id: assignment.Patient.id, name: assignment.Patient.name } : null,
                 student: assignment.User ? { id: assignment.User.id, name: assignment.User.name } : null,
                 createdAt: assignment.createdAt,
+                updatedAt: assignment.updatedAt,
             };
 
             res.status(200).json(response);

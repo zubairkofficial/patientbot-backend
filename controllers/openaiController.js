@@ -1,11 +1,15 @@
-import { calculateScore, extractInformation, extractInformationSummary } from "../services/openaiService.js";
+import {
+  calculateScore,
+  extractInformation,
+  extractInformationSummary,
+} from "../services/openaiService.js";
 import { Assignment, Patient, Prompt, Symptom } from "../models/index.js"; // Import Symptom model
 
 // Utility function to clean conversation log data
 function cleanConversationLog(conversationLog) {
   const conversation = JSON.parse(conversationLog);
   return conversation
-    ?.map(entry => {
+    ?.map((entry) => {
       const prefix = entry.isAI ? "AI: " : "Student: ";
       return `${prefix}${entry.text}`;
     })
@@ -18,12 +22,14 @@ const openaiController = {
       const { patientId, studentId } = req.body;
 
       if (!patientId || !studentId) {
-        return res.status(400).json({ error: "Both patientId and studentId are required." });
+        return res
+          .status(400)
+          .json({ error: "Both patientId and studentId are required." });
       }
 
       // Fetch the assignment from the database based on studentId and patientId
       const assignment = await Assignment.findOne({
-        where: { userId: studentId, patientId: patientId }
+        where: { userId: studentId, patientId: patientId },
       });
 
       if (!assignment) {
@@ -42,16 +48,16 @@ const openaiController = {
         include: {
           model: Patient,
           where: { id: patientId },
-          through: { attributes: [] } // Exclude join table attributes if not needed
-        }
+          through: { attributes: [] }, // Exclude join table attributes if not needed
+        },
       });
       console.log("Symptoms", symptoms);
 
       // Fetch prompt details related to the patient
       const prompts = await Prompt.findOne({
         where: {
-          patientId: patientId
-        }
+          patientId: patientId,
+        },
       });
 
       if (!prompts) {
@@ -69,7 +75,9 @@ const openaiController = {
         .join("\n");
 
       // Clean and format the conversation log
-      const cleanedConversationLog = cleanConversationLog(assignment.conversationLog);
+      const cleanedConversationLog = cleanConversationLog(
+        assignment.conversationLog
+      );
 
       // Combine cleaned conversation log and findings as studentData
       const studentData = `
@@ -98,13 +106,16 @@ const openaiController = {
       console.log("Predefined Data", predefinedData);
 
       // Call the extractInformation function
-      const structuredData = await extractInformation(suggestedData, predefinedData);
-      const summary = await extractInformationSummary(suggestedData, predefinedData);
-
+      const structuredData = await extractInformation(
+        suggestedData,
+        predefinedData
+      );
+      const summary = await extractInformationSummary(
+        suggestedData,
+        predefinedData
+      );
 
       const result = await calculateScore(summary, structuredData);
-
-
 
       console.log("Data:", structuredData);
       console.log("Summary", summary);
@@ -115,38 +126,38 @@ const openaiController = {
       const feedbackString = JSON.stringify(jsonResult.feedback);
       // Update assignment status
 
-
-
       assignment.mandatoryQuestionScore = jsonResult.mandatory_question_score;
       assignment.symptomsScore = jsonResult.symptoms_score;
       assignment.treatmentScore = jsonResult.treatments_score;
       assignment.diagnosisScore = jsonResult.diagnosis_score;
       assignment.feedback = jsonResult.feedback;
-      assignment.status = 'marked';
+      assignment.status = "marked";
 
       // Convert scores to numbers
-      assignment.mandatoryQuestionScore = parseFloat(jsonResult.mandatory_question_score);
+      assignment.mandatoryQuestionScore = parseFloat(
+        jsonResult.mandatory_question_score
+      );
       assignment.symptomsScore = parseFloat(jsonResult.symptoms_score);
       assignment.treatmentScore = parseFloat(jsonResult.treatments_score);
       assignment.diagnosisScore = parseFloat(jsonResult.diagnosis_score);
 
       // Calculate total score
-      assignment.score = assignment.mandatoryQuestionScore +
+      assignment.score =
+        assignment.mandatoryQuestionScore +
         assignment.symptomsScore +
         assignment.treatmentScore +
         assignment.diagnosisScore;
 
       // Assign remaining properties
       assignment.feedback = jsonResult.feedback;
-      assignment.status = 'marked';
-
+      assignment.status = "marked";
 
       await assignment.save();
 
       return res.json({
         structuredData,
         summary,
-        jsonResult
+        jsonResult,
       });
     } catch (error) {
       console.error("Error:", error);
@@ -159,7 +170,11 @@ const openaiController = {
       const { patientId, studentIds } = req.body;
 
       if (!patientId || !studentIds || !Array.isArray(studentIds)) {
-        return res.status(400).json({ error: "patientId and an array of studentIds are required." });
+        return res
+          .status(400)
+          .json({
+            error: "patientId and an array of studentIds are required.",
+          });
       }
 
       // Fetch patient data
@@ -179,14 +194,15 @@ const openaiController = {
         include: {
           model: Patient,
           where: { id: patientId },
-          through: { attributes: [] } // Exclude join table attributes if not needed
-        }
+          through: { attributes: [] }, // Exclude join table attributes if not needed
+        },
       });
 
       // Format symptoms data
       const formattedSymptoms = symptoms
-        .map(symptom =>
-          `Name: ${symptom.name}, Severity: ${symptom.severity}, Description: ${symptom.description}`
+        .map(
+          (symptom) =>
+            `Name: ${symptom.name}, Severity: ${symptom.severity}, Description: ${symptom.description}`
         )
         .join("\n");
 
@@ -207,7 +223,7 @@ const openaiController = {
       for (const studentId of studentIds) {
         // Fetch student assignment
         const assignment = await Assignment.findOne({
-          where: { userId: studentId, patientId }
+          where: { userId: studentId, patientId },
         });
 
         if (!assignment) {
@@ -216,7 +232,9 @@ const openaiController = {
         }
 
         // Clean and format student data
-        const cleanedConversationLog = cleanConversationLog(assignment.conversationLog);
+        const cleanedConversationLog = cleanConversationLog(
+          assignment.conversationLog
+        );
         const studentData = `
             Conversation Log:
             ${cleanedConversationLog}
@@ -227,15 +245,21 @@ const openaiController = {
         const suggestedData = JSON.stringify(studentData);
 
         // Call extractInformation and calculateScore
-        const structuredData = await extractInformation(suggestedData, predefinedData);
-        const summary = await extractInformationSummary(suggestedData, predefinedData);
+        const structuredData = await extractInformation(
+          suggestedData,
+          predefinedData
+        );
+        const summary = await extractInformationSummary(
+          suggestedData,
+          predefinedData
+        );
         const result = await calculateScore(summary, structuredData);
 
         const jsonResult = JSON.parse(result);
         const feedbackString = JSON.stringify(jsonResult.feedback);
 
         // Update assignment status
-        assignment.status = 'marked';
+        assignment.status = "marked";
         assignment.score = jsonResult.total_score;
         assignment.feedback = feedbackString;
         await assignment.save();
@@ -245,7 +269,7 @@ const openaiController = {
           structuredData,
           summary,
           totalScore: jsonResult.total_score,
-          feedback: jsonResult.feedback
+          feedback: jsonResult.feedback,
         });
       }
 
@@ -256,14 +280,13 @@ const openaiController = {
     }
   },
 
-
   async updateAssignment(req, res) {
     try {
       const { assignmentId, feedback, scores } = req.body;
 
       if (!assignmentId || !feedback || !scores) {
         return res.status(400).json({
-          error: "Assignment ID, feedback, and scores are required."
+          error: "Assignment ID, feedback, and scores are required.",
         });
       }
 
@@ -279,7 +302,7 @@ const openaiController = {
         mandatoryQuestionScore,
         symptomsScore,
         treatmentScore,
-        diagnosisScore
+        diagnosisScore,
       } = scores;
 
       // Check if any score is missing or not a number
@@ -291,7 +314,7 @@ const openaiController = {
       ) {
         return res.status(400).json({
           error:
-            "All score fields (mandatoryQuestionScore, symptomsScore, treatmentScore, diagnosisScore) are required."
+            "All score fields (mandatoryQuestionScore, symptomsScore, treatmentScore, diagnosisScore) are required.",
         });
       }
 
@@ -309,7 +332,7 @@ const openaiController = {
         isNaN(diagnosisScoreNum)
       ) {
         return res.status(400).json({
-          error: "All scores must be valid numbers."
+          error: "All scores must be valid numbers.",
         });
       }
 
@@ -332,16 +355,14 @@ const openaiController = {
 
       return res.json({
         message: "Assignment updated successfully.",
-        assignment
+        assignment,
       });
     } catch (error) {
       console.error("Error updating assignment:", error);
       return res.status(500).json({
-        error: error.message
+        error: error.message,
       });
     }
-  }
-
-}
+  },
+};
 export default openaiController;
-
