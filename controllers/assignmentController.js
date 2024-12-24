@@ -148,7 +148,7 @@ const assignmentController = {
                         attributes: ['id', 'name'],
                     }
                 ],
-                attributes: ['id', 'status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog', 'isMarkable']
+                attributes: ['id', 'status', 'dueDate', 'score', 'feedback', 'findings', 'conversationLog', 'isMarkable', 'visitNote']
             });
 
             // Group assignments by student
@@ -172,6 +172,7 @@ const assignmentController = {
                     score: assignment.score,
                     feedback: assignment.feedback,
                     findings: assignment.findings,
+                    visitNote: assignment.visitNote,
                     isMarkable: assignment.isMarkable,
                     conversationLog: assignment.conversationLog,
                     createdAt: assignment.createdAt,
@@ -429,7 +430,7 @@ const assignmentController = {
     },
 
     async submitAssignment(req, res) {
-        const { studentId, patientId, findings } = req.body;
+        const { studentId, patientId, findings, visitNote } = req.body;
 
         // Validate basic input
         if (!studentId || !patientId) {
@@ -461,10 +462,12 @@ const assignmentController = {
                     return res.status(400).json({ message: 'Submit your diagnosis to proceed.' });
                 }
                 assignment.findings = findings;
+                assignment.visitNote = visitNote;
             }
 
             // Update status
             assignment.status = 'completed';
+
             await assignment.save();
 
             res.status(200).json({ message: 'Assignment submitted successfully.' });
@@ -515,6 +518,7 @@ const assignmentController = {
                 symptomsScore: assignment.symptomsScore,
                 treatmentScore: assignment.treatmentScore,
                 diagnosisScore: assignment.diagnosisScore,
+                visitNote: assignment.visitNote,
                 conversationLog: assignment.conversationLog ? JSON.parse(assignment.conversationLog) : null,
                 patient: assignment.Patient ? { id: assignment.Patient.id, name: assignment.Patient.name } : null,
                 student: assignment.User ? { id: assignment.User.id, name: assignment.User.name } : null,
