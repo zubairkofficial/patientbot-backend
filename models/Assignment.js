@@ -77,6 +77,12 @@ export default function initAssignmentModel(sequelize) {
         defaultValue: true,
         comment: "Controls if assignment requires marking and findings",
       },
+      isNoteAllow: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        comment: "Controls if Admin requires to add note",
+      },
       findings: {
         type: DataTypes.TEXT,
         allowNull: true,

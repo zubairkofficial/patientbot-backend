@@ -86,7 +86,12 @@ const openaiController = {
           
           Diagnosis & Treatments by Student:
           ${assignment.findings}
-      `;
+
+          ${
+            assignment.visitNote
+              ? `Note:\n ${assignment.visitNote}`
+              : ""
+          }      `;
 
       // Format patientData string based on patient data values and symptoms
       const patientData = `
@@ -170,11 +175,9 @@ const openaiController = {
       const { patientId, studentIds } = req.body;
 
       if (!patientId || !studentIds || !Array.isArray(studentIds)) {
-        return res
-          .status(400)
-          .json({
-            error: "patientId and an array of studentIds are required.",
-          });
+        return res.status(400).json({
+          error: "patientId and an array of studentIds are required.",
+        });
       }
 
       // Fetch patient data

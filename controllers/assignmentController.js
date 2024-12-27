@@ -71,7 +71,7 @@ const assignmentController = {
     },
 
     async assignStudent(req, res) {
-        const { patientId, studentIds, dueDate, isMarkable, creatorId } = req.body;
+        const { patientId, studentIds, dueDate, isMarkable, isNoteAllow, creatorId } = req.body;
 
         // Check if patientId, studentIds, and creatorId are provided
         if (!patientId || !Array.isArray(studentIds) || studentIds.length === 0 || !creatorId) {
@@ -120,6 +120,7 @@ const assignmentController = {
                 treatmentScore: null,
                 feedback: null,
                 isMarkable,
+                isNoteAllow,
                 creatorId: creatorId // Set the creatorId
             }));
 
@@ -330,7 +331,7 @@ const assignmentController = {
                         through: {
                             model: Assignment,
                             attributes: ['id', 'status', 'updatedAt', 'dueDate', 'score', 'feedback',
-                                'mandatoryQuestionScore', 'symptomsScore', 'treatmentScore', 'isMarkable', 'requestStatus', 'createdAt'],
+                                'mandatoryQuestionScore', 'symptomsScore', 'treatmentScore', 'isMarkable', 'isNoteAllow', 'requestStatus', 'createdAt'],
                         },
                         include: [
                             {
@@ -383,6 +384,7 @@ const assignmentController = {
                         treatmentScore: assignment ? assignment.treatmentScore : null,
                         requestStatus: assignment ? assignment.requestStatus : null,
                         isMarkable: assignment ? assignment.isMarkable : null,
+                        isNoteAllow: assignment ? assignment.isNoteAllow : null,
                         createdAt: assignment ? assignment.createdAt : null,
                     };
                 }),
@@ -504,7 +506,7 @@ const assignmentController = {
             if (!assignment) {
                 return res.status(404).json({ message: 'Assignment not found.' });
             }
-
+            console.log("Assignment Note:", assignment.isNoteAllow);
             // Structure the response
             const response = {
                 id: assignment.id,
@@ -514,6 +516,7 @@ const assignmentController = {
                 feedback: assignment.feedback,
                 score: assignment.score,
                 isMarkable: assignment.isMarkable,
+                isNoteAllow: assignment.isNoteAllow,
                 mandatoryQuestionScore: assignment.mandatoryQuestionScore,
                 symptomsScore: assignment.symptomsScore,
                 treatmentScore: assignment.treatmentScore,
