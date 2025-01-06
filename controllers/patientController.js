@@ -30,7 +30,6 @@ const patientController = {
   },
 
   // Create a new patient with symptoms and prompts
-  // Create a new patient with symptoms and prompts
   async createPatient(req, res) {
     const {
       name,
@@ -97,15 +96,12 @@ const patientController = {
       });
     } catch (error) {
       console.error("Error creating patient and prompt:", error);
-      res
-        .status(500)
-        .json({
-          error: "An error occurred while creating the patient and prompt",
-        });
+      res.status(500).json({
+        error: "An error occurred while creating the patient and prompt",
+      });
     }
   },
 
-  // Update a patient
   // Update a patient
   async updatePatient(req, res) {
     const { id } = req.params;
