@@ -10,6 +10,7 @@ import openaiRoutes from "./routes/openaiRoutes.js";
 import apiKeyRoutes from "./routes/apiKeyRoutes.js";
 import testRoutes from "./routes/testRoutes.js"; // Import the test route
 import requestRoutes from "./routes/requestRoutes.js";
+import roomRoutes from "./routes/roomRoutes.js";
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/api/v1/home", homeRoutes);
 app.use("/api/v1/openai", openaiRoutes);
 app.use("/api/v1/apiKeys", apiKeyRoutes);
 app.use("/api/v1/testing", testRoutes);
+app.use("/api/v1/rooms", roomRoutes);
 
 app.get("/api/v1/", (req, res) => {
   res.send({ Hello: "World" });

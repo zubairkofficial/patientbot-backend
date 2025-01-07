@@ -68,6 +68,14 @@ const userController = {
             res.status(500).json({ message: 'Error retrieving users', error: error.message });
         }
     },
+    async getUnAssignStudents(req, res) {
+        try {
+            const users = await User.findAll({ where: { isAdmin: false, isSuperAdmin: false, roomId: null } });
+            res.status(200).json(users);
+        } catch (error) {
+            res.status(500).json({ message: 'Error retrieving users', error: error.message });
+        }
+    },
 
     // Get a single user by ID
     async getUserById(req, res) {
@@ -84,7 +92,6 @@ const userController = {
         }
     },
 
-    // Update user by ID
     // Update user by ID
     async updateUser(req, res) {
         const { id } = req.params;

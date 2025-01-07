@@ -38,7 +38,7 @@ const Prompt = initPromptModel(sequelize);
 const ChatGPTModel = initChatGPTModel(sequelize); // Initialize ChatGPTModel
 const ApiKey = initApiKeyModel(sequelize); // Initialize ApiKey
 const AssignmentAttempt = initAssignmentAttemptModel(sequelize);
-const Room = initRoomModel(sequelize); 
+const Room = initRoomModel(sequelize);
 
 // Set up relationships
 
@@ -60,11 +60,15 @@ Assignment.belongsTo(Patient, { foreignKey: "patientId" });
 Assignment.belongsTo(User, { foreignKey: "userId" });
 Assignment.belongsTo(User, { foreignKey: "creatorId", as: "creator" });
 
-// Room and User relationship
-Room.hasMany(User, { foreignKey: "roomId" });
+// A Room is created by one User (admin)
+Room.belongsTo(User, { foreignKey: "userId", as: "creator" });
 
-// User model belongs to one Room
-User.belongsTo(Room, { foreignKey: "roomId" });
+// A User (student) can belong to one Room
+User.belongsTo(Room, { foreignKey: "roomId", as: "room" });
+
+// A Room can have many Users (students)
+Room.hasMany(User, { foreignKey: "roomId", as: "students" });
+
 
 // Patient and Prompt relationship
 Patient.hasOne(Prompt, { foreignKey: "patientId" });

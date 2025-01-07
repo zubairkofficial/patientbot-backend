@@ -10,6 +10,7 @@ router.use(authMiddleware);
 router.post("/", userController.createUser); // Add new user
 router.get("/", userController.getAllUsers);
 router.get("/students", userController.getAllStudents); // Get all users
+router.get("/un-assign-students", userController.getUnAssignStudents);
 router.get("/:id", userController.getUserById); // Get user by ID
 router.put("/:id", userController.updateUser); // Update user
 router.delete("/:id", userController.deleteUser); // Delete user

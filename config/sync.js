@@ -2,6 +2,7 @@
 import sequelize from '../models/index.js';
 import initUserModel from '../models/User.js';
 import initPatientModel from '../models/Patient.js';
+import initRoomModel from "../models/Room.js";
 import initSymptomModel from '../models/Symptom.js';
 import initPatientSymptomModel from '../models/PatientSymptom.js';
 import initAssignmentModel from '../models/Assignment.js';
@@ -18,6 +19,7 @@ initPromptModel(sequelize);
 initAssignmentModel(sequelize);
 initApiKeyModel(sequelize);
 initChatGPTModel(sequelize);
+initRoomModel(sequelize);
 
 const syncDatabase = async () => {
     try {

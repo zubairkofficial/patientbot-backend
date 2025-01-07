@@ -60,6 +60,15 @@ export default function initUserModel(sequelize) {
         type: DataTypes.STRING,
         allowNull: true, // Can be null if not yet verified
       },
+      roomId: {
+        type: DataTypes.UUID,
+        allowNull: true, // Null for admins, assigned for students
+        references: {
+          model: "rooms",
+          key: "id",
+        },
+        onDelete: "SET NULL",
+      },
     },
     {
       sequelize,

@@ -20,6 +20,20 @@ export default function initRoomModel(sequelize) {
         allowNull: false,
         unique: true,
       },
+      userId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
+        onDelete: "CASCADE",
+      },
+      slug: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true, // Ensure the slug is unique for each patient
+      },
     },
     {
       sequelize,
