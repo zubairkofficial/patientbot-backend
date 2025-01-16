@@ -9,7 +9,7 @@ import { Op } from 'sequelize';
 const assignmentController = {
 
     async assignPatient(req, res) {
-        const { studentId, patientIds, dueDate, isMarkable, creatorId } = req.body;
+        const { studentId, patientIds, dueDate, isMarkable, isNoteAllow,  creatorId } = req.body;
 
         // Check if studentId, patientIds, and creatorId are provided
         if (!studentId || !Array.isArray(patientIds) || patientIds.length === 0 || !creatorId) {
@@ -56,6 +56,7 @@ const assignmentController = {
                 symptomsScore: null,
                 treatmentScore: null,
                 feedback: null,
+                isNoteAllow: isNoteAllow,
                 isMarkable: isMarkable,
                 creatorId: creatorId // Set the creatorId
             }));

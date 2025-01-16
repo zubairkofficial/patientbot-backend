@@ -79,7 +79,7 @@ export default function initAssignmentModel(sequelize) {
       },
       isNoteAllow: {
         type: DataTypes.BOOLEAN,
-        allowNull: false,
+        allowNull: true,
         defaultValue: false,
         comment: "Controls if Admin requires to add note",
       },
