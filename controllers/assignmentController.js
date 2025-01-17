@@ -64,7 +64,7 @@ const assignmentController = {
             // Bulk create the assignments
             await Assignment.bulkCreate(assignments);
             console.log("Assignments " ,assignments);
-            res.status(200).json({ message: 'Patients assigned to student successfully.' });
+            res.status(200).json({ message: 'Patients assigned to student successfully.', assignment: assignments });
         } catch (error) {
             console.error('Error assigning patients to student:', error);
             res.status(500).json({ message: 'An error occurred while assigning patients to the student.' });
