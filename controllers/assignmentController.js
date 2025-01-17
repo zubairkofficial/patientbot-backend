@@ -56,14 +56,14 @@ const assignmentController = {
                 symptomsScore: null,
                 treatmentScore: null,
                 feedback: null,
-                isNoteAllow: isNoteAllow,
+                isNoteAllow,
                 isMarkable: isMarkable,
                 creatorId: creatorId // Set the creatorId
             }));
 
             // Bulk create the assignments
             await Assignment.bulkCreate(assignments);
-
+            console.log("Assignments " ,assignments);
             res.status(200).json({ message: 'Patients assigned to student successfully.' });
         } catch (error) {
             console.error('Error assigning patients to student:', error);
