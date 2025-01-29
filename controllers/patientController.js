@@ -1,4 +1,4 @@
-import { Patient, Symptom, Prompt } from "../models/index.js";
+import { Patient, Symptom, Prompt, Assignment, sequelize } from "../models/index.js";
 
 const patientController = {
   // Get all patients with symptoms and prompts
@@ -186,22 +186,27 @@ const patientController = {
         return res.status(404).json({ message: "Patient not found" });
       }
 
-      // Delete the patient and associated prompt
-      const prompt = await Prompt.findOne({ where: { patientId: id } });
-      if (prompt) {
-        await prompt.destroy();
-      }
+      // Use a transaction to ensure all deletions happen safely
+      await sequelize.transaction(async (t) => {
+        // Delete related assignments
+        await Assignment.destroy({ where: { patientId: id }, transaction: t });
 
-      await patient.destroy();
+        // Delete related prompt if exists
+        const prompt = await Prompt.findOne({ where: { patientId: id }, transaction: t });
+        if (prompt) {
+          await prompt.destroy({ transaction: t });
+        }
 
-      res.status(200).json({ message: "Patient deleted successfully" });
+        // Delete the patient
+        await patient.destroy({ transaction: t });
+      });
+
+      res.status(200).json({ message: "Patient and all related data deleted successfully" });
     } catch (error) {
       console.error("Error deleting patient:", error);
-      res
-        .status(500)
-        .json({ error: "An error occurred while deleting the patient" });
+      res.status(500).json({ error: "An error occurred while deleting the patient" });
     }
-  },
+  }
 };
 
 export default patientController;
