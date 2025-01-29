@@ -165,6 +165,7 @@ export const signin = async (req, res) => {
                 isAdmin: user.isAdmin,
                 isActive: user.isActive,
                 isSuperAdmin: user.isSuperAdmin,
+                isStatus: user.isStatus,
             },
             token, // Send the token back if needed
         });
