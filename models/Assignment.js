@@ -122,6 +122,7 @@ export default function initAssignmentModel(sequelize) {
       modelName: "Assignment",
       tableName: "assignments",
       timestamps: true,
+      paranoid: true,
     }
   );
 

@@ -69,6 +69,10 @@ export default function initUserModel(sequelize) {
         },
         onDelete: "SET NULL",
       },
+      isStatus: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true, // Null for admins, assigned for students
+      },
     },
     {
       sequelize,

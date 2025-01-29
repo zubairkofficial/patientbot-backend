@@ -1,4 +1,4 @@
-import { User } from '../models/index.js';
+import { User, sequelize } from '../models/index.js';
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { Assignment } from '../models/index.js';
@@ -202,21 +202,47 @@ const userController = {
     },
 
 
-
-    // Delete user by ID
     async deleteUser(req, res) {
         const { id } = req.params;
 
         try {
             const user = await User.findByPk(id);
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: "User not found" });
             }
 
-            await user.destroy();
-            res.status(200).json({ message: 'User deleted successfully' });
+            // Start a transaction for safety
+            await sequelize.transaction(async (t) => {
+                // Delete all assignments where the user is referenced
+                await Assignment.destroy({ where: { userId: id }, transaction: t });
+                await Assignment.destroy({ where: { creatorId: id }, transaction: t });
+
+                // Delete the user
+                await user.destroy({ transaction: t });
+            });
+
+            res.status(200).json({ message: "User and all related data deleted successfully" });
         } catch (error) {
-            res.status(500).json({ message: 'Error deleting user', error: error.message });
+            res.status(500).json({ message: "Error deleting user", error: error.message });
+        }
+    },
+
+    async restrictUser(req, res) {
+        const { id } = req.params;
+
+        try {
+            const user = await User.findByPk(id);
+            if (!user) {    
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            // Toggle user's status (true to false, or false to true)
+            user.isStatus = !user.isStatus;
+            await user.save();
+
+            res.status(200).json({ message: "User restricted successfully" });
+        } catch (error) {
+            res.status(500).json({ message: "Error restricting user", error: error.message });
         }
     },
 

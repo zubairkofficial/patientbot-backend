@@ -15,7 +15,7 @@ router.get("/:id", userController.getUserById); // Get user by ID
 router.put("/:id", userController.updateUser); // Update user
 router.delete("/:id", userController.deleteUser); // Delete user
 router.put("/:id/update-password", userController.updatePassword);
-
+router.patch("/restrict-user/:id", userController.restrictUser); // Restrict user
 router.post("/assign-patients", userController.assignPatient);
 router.get("/assigned", (req, res) => {
   console.log("Hello World");
