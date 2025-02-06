@@ -8,12 +8,12 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // CRUD routes for rooms
-router.post("/", roomControllers.createRooms); // Create a new room
+router.post("/", roomControllers.createRoom); // Create a new room
 router.get("/", roomControllers.getAllRooms); // Get all rooms
 router.post("/assign-rooms", roomControllers.assignStudentsToRoom);
 router.get("/students", roomControllers.getRoomsAndStudents);
 router.get("/room-scores/:roomId", roomControllers.getScoresByRoomId);
-
+router.delete('/remove-student/:studentId', roomControllers.removeStudentFromRoom);
 router.get("/:id", roomControllers.getRoomById); // Get a room by ID
 router.put("/:id", roomControllers.updateRoom); // Update a room by ID
 router.delete("/:id", roomControllers.deleteRoom); // Delete a room by ID

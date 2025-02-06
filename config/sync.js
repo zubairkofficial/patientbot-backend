@@ -10,6 +10,7 @@ import initPromptModel from '../models/Prompt.js';
 import initApiKeyModel from '../models/ApiKey.js';
 import initChatGPTModel from '../models/ChatGPT.js';
 
+
 // Initialize User model with Sequelize instance
 initUserModel(sequelize);
 initPatientModel(sequelize);

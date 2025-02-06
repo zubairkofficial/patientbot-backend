@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
 export default function initPatientModel(sequelize) {
-    class Patient extends Model {}
+    class Patient extends Model { }
 
     Patient.init({
         id: {

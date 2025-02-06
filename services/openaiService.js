@@ -39,8 +39,8 @@ async function initializeModel() {
     model = new ChatOpenAI({
       apiKey: apiKey,
       model: modelDetails.modelName || "gpt-4o",
-      maxTokens: modelDetails.maxTokens || 8000,
-      temperature: 0.3, // Default to 8000 if maxTokens is not defined
+      maxTokens: modelDetails.maxTokens || 8000,  // Default to 8000 if maxTokens is not defined
+      temperature: 0.3,
     });
   } catch (error) {
     console.error("Error initializing model with API key:", error.message);

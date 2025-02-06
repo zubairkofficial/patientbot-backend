@@ -11,6 +11,7 @@ import initChatGPTModel from "./ChatGPT.js"; // Import Modal (ChatGPTModel)
 import initApiKeyModel from "./ApiKey.js"; // Import ApiKey model
 import initAssignmentAttemptModel from "./AssignmentAttempt.js";
 
+
 dotenv.config();
 
 // Create a new Sequelize instance with database configurations
@@ -40,7 +41,6 @@ const ApiKey = initApiKeyModel(sequelize); // Initialize ApiKey
 const AssignmentAttempt = initAssignmentAttemptModel(sequelize);
 const Room = initRoomModel(sequelize);
 
-// Set up relationships
 
 // Patient and Symptom relationship
 Patient.belongsToMany(Symptom, {
@@ -100,5 +100,6 @@ export {
   ChatGPTModel,
   ApiKey,
   Room,
+
 };
 export default sequelize;

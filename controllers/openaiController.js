@@ -4,7 +4,10 @@ import {
   extractInformationSummary,
 } from "../services/openaiService.js";
 import { Assignment, Patient, Prompt, Symptom } from "../models/index.js"; // Import Symptom model
+import dotenv from "dotenv";
+import axios from "axios";
 
+dotenv.config();
 // Utility function to clean conversation log data
 function cleanConversationLog(conversationLog) {
   const conversation = JSON.parse(conversationLog);
@@ -87,11 +90,10 @@ const openaiController = {
           Diagnosis & Treatments by Student:
           ${assignment.findings}
 
-          ${
-            assignment.visitNote
-              ? `Note:\n ${assignment.visitNote}`
-              : ""
-          }      `;
+          ${assignment.visitNote
+          ? `Note:\n ${assignment.visitNote}`
+          : ""
+        }      `;
 
       // Format patientData string based on patient data values and symptoms
       const patientData = `
@@ -367,5 +369,50 @@ const openaiController = {
       });
     }
   },
+
+
+  async openaiModels(req, res) {
+    try {
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "OpenAI API key is missing" });
+      }
+
+      const response = await axios.get("https://api.openai.com/v1/models", {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      });
+
+      res.status(200).json({ models: response.data.data });
+    } catch (error) {
+      console.error("Error fetching OpenAI models:", error);
+      res.status(500).json({ error: "Failed to fetch OpenAI models" });
+    }
+  },
+
+  async deepgramModel(req, res) {
+    try {
+      const apiKey = process.env.DEEPGRAM_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "Deepgram API key is missing" });
+      }
+
+      const response = await axios.get("https://api.deepgram.com/v1/models", {
+        headers: { Authorization: `Token ${apiKey}` },
+      });
+
+      res.status(200).json({ models: response.data });
+    } catch (error) {
+      console.error("Error fetching Deepgram models:", error);
+      res.status(500).json({ error: "Failed to fetch Deepgram models" });
+    }
+  }
+
+
+
+
+
+
+
+
 };
 export default openaiController;

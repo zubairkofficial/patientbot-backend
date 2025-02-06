@@ -1,4 +1,4 @@
-import { Assignment, Prompt } from '../models/index.js';
+import { Assignment, Prompt, Room } from '../models/index.js';
 import { Patient } from '../models/index.js';
 import { User } from '../models/index.js';
 import { Symptom } from '../models/index.js';
@@ -9,7 +9,7 @@ import { Op } from 'sequelize';
 const assignmentController = {
 
     async assignPatient(req, res) {
-        const { studentId, patientIds, dueDate, isMarkable, isNoteAllow,  creatorId } = req.body;
+        const { studentId, patientIds, dueDate, isMarkable, isNoteAllow, creatorId } = req.body;
 
         // Check if studentId, patientIds, and creatorId are provided
         if (!studentId || !Array.isArray(patientIds) || patientIds.length === 0 || !creatorId) {
@@ -63,7 +63,7 @@ const assignmentController = {
 
             // Bulk create the assignments
             await Assignment.bulkCreate(assignments);
-            console.log("Assignments " ,assignments);
+            console.log("Assignments ", assignments);
             res.status(200).json({ message: 'Patients assigned to student successfully.', assignment: assignments });
         } catch (error) {
             console.error('Error assigning patients to student:', error);
@@ -134,6 +134,75 @@ const assignmentController = {
             res.status(500).json({ message: 'An error occurred while assigning the patient to students.' });
         }
     },
+    async assignPatientToClassroom(req, res) {
+        const { roomId, patientId, isMarkable, isNoteAllow, creatorId } = req.body;
+
+        // Validate required fields
+        if (!roomId || !patientId || !creatorId) {
+            return res.status(400).json({ message: 'Room ID, Patient ID, and Creator ID are required.' });
+        }
+
+        try {
+            // Check if the room exists
+            const room = await Room.findByPk(roomId);
+            if (!room) {
+                return res.status(404).json({ message: 'Classroom not found.' });
+            }
+
+            // Check if the patient exists
+            const patient = await Patient.findByPk(patientId);
+            if (!patient) {
+                return res.status(404).json({ message: 'Patient not found.' });
+            }
+
+            // Fetch all students in the room using the alias 'students'
+            const students = await User.findAll({
+                where: { roomId },
+                attributes: ['id', 'name'] // Fetch only necessary fields
+            });
+
+            if (students.length === 0) {
+                return res.status(400).json({ message: 'No students found in this classroom.' });
+            }
+
+            // Get student IDs
+            const studentIds = students.map(student => student.id);
+
+            // Check for existing assignments
+            const existingAssignments = await Assignment.findAll({
+                where: {
+                    patientId,
+                    userId: { [Op.in]: studentIds }
+                }
+            });
+
+            if (existingAssignments.length > 0) {
+                return res.status(400).json({ message: 'One or more students already have this patient assigned.' });
+            }
+
+            // Create assignments for each student in the classroom
+            const assignments = studentIds.map(studentId => ({
+                userId: studentId,
+                patientId,
+                status: 'assigned',
+                isMarkable,
+                isNoteAllow,
+                creatorId
+            }));
+
+            // Bulk create assignments
+            await Assignment.bulkCreate(assignments);
+
+            res.status(200).json({ message: 'Patient assigned to the entire classroom successfully.', assignments });
+
+        } catch (error) {
+            console.error('Error assigning patient to classroom:', error);
+            res.status(500).json({ message: 'An error occurred while assigning the patient to the classroom.' });
+        }
+    },
+
+
+
 
     async getAssignedPatients(req, res) {
         console.log("Fetching assigned patients");

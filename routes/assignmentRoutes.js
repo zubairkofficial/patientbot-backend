@@ -15,6 +15,7 @@ router.post('/store', assignmentController.storeConversationLog);
 router.post('/submit', assignmentController.submitAssignment);
 router.post('/assign-patient', assignmentController.assignPatient);
 router.post('/assign-student', assignmentController.assignStudent);
+router.post('/assign-patientroom', assignmentController.assignPatientToClassroom);
 router.get('/assignment/:id', assignmentController.getAssignmentById);
 router.put('/', assignmentController.updateAssignment);
 router.delete('/:id', assignmentController.deleteAssignment);
