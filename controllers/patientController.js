@@ -33,6 +33,7 @@ const patientController = {
   async createPatient(req, res) {
     const {
       name,
+      voiceModel,
       answer,
       symptoms,
       mandatoryQuestions,
@@ -43,6 +44,7 @@ const patientController = {
     // Validate required fields
     if (
       !name ||
+      !voiceModel ||
       !medicalHistory ||
       !predefinedTreatments ||
       !answer ||
@@ -67,7 +69,7 @@ const patientController = {
       }
 
       // Create a new patient with the generated slug
-      const newPatient = await Patient.create({ name, answer, slug });
+      const newPatient = await Patient.create({ name, answer, slug, voiceModel });
       const newPatientId = newPatient.id;
 
       // Set mandatoryQuestions to empty string if not provided
@@ -206,7 +208,36 @@ const patientController = {
       console.error("Error deleting patient:", error);
       res.status(500).json({ error: "An error occurred while deleting the patient" });
     }
+  },
+
+  // Get a patient by ID
+  async getPatientById(req, res) {
+    const { id } = req.params;
+    try {
+      const patient = await Patient.findByPk(id, {
+        include: [
+          {
+            model: Symptom,
+            through: { attributes: [] },
+          },
+          {
+            model: Prompt,
+            attributes: ["mandatoryQuestions", "medicalHistory", "predefinedTreatments"],
+          },
+        ],
+      });
+
+      if (!patient) {
+        return res.status(404).json({ message: "Patient not found" });
+      }
+
+      res.status(200).json(patient);
+    } catch (error) {
+      console.error("Error fetching patient:", error);
+      res.status(500).json({ error: "An error occurred while fetching the patient" });
+    }
   }
+  
 };
 
 export default patientController;

@@ -23,6 +23,10 @@ export default function initPatientModel(sequelize) {
             allowNull: false,
             unique: true, // Ensure the slug is unique for each patient
         },
+        voiceModel: {
+            type: DataTypes.STRING,
+            allowNull: true, // Allow null for backward compatibility or initial creation
+        },
     }, {
         sequelize,
         modelName: 'Patient',

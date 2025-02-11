@@ -10,6 +10,7 @@ router.use(authMiddleware);
 // Define CRUD routes for patient
 router.post("/", patientController.createPatient); // Add new patient
 router.get("/", patientController.getAllPatients); // Get all patients
+router.get("/patientId/:id", patientController.getPatientById); // Get all patients
 router.put("/:id", patientController.updatePatient); // Update patient
 router.delete("/:id", patientController.deletePatient); // Delete patient
 
